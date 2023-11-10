@@ -38,6 +38,38 @@ parent:
   </a>
 </div>
 
+## A new ethermint, why?
+
+THe goal of this repository is to take the last version of Ethermint using
+CometBFT and use it for our own lightweight, easy to upgrade stack.
+
+For now this is only exploratory work.
+
+The roadmap is:
+
+1. Start from the original go-ethereum version i.e. v1.10.26
+2. Upgrade go-ethereum version by version and updates ethermint accordingly
+   until the most up-to-date go-ethereum
+3. Clean most of modules we do not need
+4. Integrate fhevm-go
+
+## How to proceed
+
+- Update go.mod with the new version of go-ethereum, e.g. v1.11.0
+- Another way is to use a custom go-ethereum with the right version and link it
+  to ethermint thank to go.mod file (in replace section at the bottom):
+  ```bash
+  github.com/ethereum/go-ethereum v1.10.26 => ../go-ethereum
+  ```
+- Check build is ok.
+  ```bash
+  make build
+  ```
+- If errors, fix them on Ethermint, commit and continue with the new version
+  v.1.11.1 ...
+
+- The goal is to reach go-ethereum v1.13.4.
+
 > [!WARNING] Evmos, the team behind Ethermint, has fully shifted its focus to
 > [Evmos](https://github.com/evmos/evmos), where we continue to build
 > interoperability solutions for the future! As a result, this repository is no
