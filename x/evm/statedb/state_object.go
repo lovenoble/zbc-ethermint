@@ -17,6 +17,7 @@ package statedb
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
 	"sort"
 
@@ -64,6 +65,21 @@ func (s Storage) SortedKeys() []common.Hash {
 	return keys
 }
 
+func (s Storage) String() (str string) {
+	for key, value := range s {
+		str += fmt.Sprintf("%X : %X\n", key, value)
+	}
+	return
+}
+
+func (s Storage) Copy() Storage {
+	cpy := make(Storage, len(s))
+	for key, value := range s {
+		cpy[key] = value
+	}
+	return cpy
+}
+
 // stateObject is the state of an acount
 type stateObject struct {
 	db *StateDB
@@ -78,8 +94,11 @@ type stateObject struct {
 	address common.Address
 
 	// flags
-	dirtyCode bool
-	suicided  bool
+	dirtyCode      bool
+	selfDestructed bool
+
+	// Flag whether the object was created in the current transaction
+	created bool
 }
 
 // newObject creates a state object.
@@ -104,8 +123,8 @@ func (s *stateObject) empty() bool {
 	return s.account.Nonce == 0 && s.account.Balance.Sign() == 0 && bytes.Equal(s.account.CodeHash, emptyCodeHash)
 }
 
-func (s *stateObject) markSuicided() {
-	s.suicided = true
+func (s *stateObject) markSelfDestructed() {
+	s.selfDestructed = true
 }
 
 // AddBalance adds amount to s's balance.

@@ -20,6 +20,7 @@ import (
 	"github.com/evmos/ethermint/x/evm/statedb"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	ethcore "github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -229,21 +230,35 @@ func applyTransaction(
 	gp *ethcore.GasPool, evmKeeper *evmkeeper.Keeper, vmdb *statedb.StateDB, header *ethtypes.Header,
 	tx *ethtypes.Transaction, usedGas *uint64, cfg ethvm.Config,
 ) (*ethtypes.Receipt, uint64, error) {
-	msg, err := tx.AsMessage(ethtypes.MakeSigner(config, header.Number), sdk.ZeroInt().BigInt())
+	msg := ethcore.Message{
+		To:                tx.To(),
+		Nonce:             tx.Nonce(),
+		Value:             tx.Value(),
+		GasLimit:          tx.Gas(),
+		GasPrice:          new(big.Int).Set(tx.GasPrice()),
+		GasFeeCap:         tx.GasFeeCap(),
+		GasTipCap:         tx.GasTipCap(),
+		Data:              tx.Data(),
+		AccessList:        tx.AccessList(),
+		SkipAccountChecks: false,
+	}
+	msg.GasPrice = math.BigMin(msg.GasPrice.Add(msg.GasTipCap, sdk.ZeroInt().BigInt()), msg.GasFeeCap)
+	var err error
+	msg.From, err = ethtypes.Sender(ethtypes.MakeSigner(config, header.Number, header.Time), tx)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// Create a new context to be used in the EVM environment
 	blockCtx := ethcore.NewEVMBlockContext(header, bc, author)
-	txCtx := ethcore.NewEVMTxContext(msg)
+	txCtx := ethcore.NewEVMTxContext(&msg)
 
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
 	vmenv := ethvm.NewEVM(blockCtx, txCtx, vmdb, config, cfg)
 
 	// Apply the transaction to the current state (included in the env)
-	execResult, err := ethcore.ApplyMessage(vmenv, msg, gp)
+	execResult, err := ethcore.ApplyMessage(vmenv, &msg, gp)
 	if err != nil {
 		// NOTE: ignore vm execution error (eg: tx out of gas at block 51169) as we care only about state transition errors
 		return &ethtypes.Receipt{}, 0, nil
@@ -259,7 +274,7 @@ func applyTransaction(
 	receipt.GasUsed = execResult.UsedGas
 
 	// if the transaction created a contract, store the creation address in the receipt.
-	if msg.To() == nil {
+	if msg.To == nil {
 		receipt.ContractAddress = crypto.CreateAddress(vmenv.TxContext.Origin, tx.Nonce())
 	}
 

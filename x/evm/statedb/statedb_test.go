@@ -9,6 +9,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/stretchr/testify/suite"
 )
@@ -62,8 +63,8 @@ func (suite *StateDBTestSuite) TestAccount() {
 		}},
 		{"suicide", func(db *statedb.StateDB) {
 			// non-exist account.
-			suite.Require().False(db.Suicide(address))
-			suite.Require().False(db.HasSuicided(address))
+			db.SelfDestruct(address)
+			suite.Require().False(db.HasSelfDestructed(address))
 
 			// create a contract account
 			db.CreateAccount(address)
@@ -75,11 +76,12 @@ func (suite *StateDBTestSuite) TestAccount() {
 
 			// suicide
 			db = statedb.New(sdk.Context{}, db.Keeper(), emptyTxConfig)
-			suite.Require().False(db.HasSuicided(address))
-			suite.Require().True(db.Suicide(address))
+			suite.Require().False(db.HasSelfDestructed(address))
+			db.SelfDestruct(address)
+			suite.Require().True(db.HasSelfDestructed(address))
 
 			// check dirty state
-			suite.Require().True(db.HasSuicided(address))
+			suite.Require().True(db.HasSelfDestructed(address))
 			// balance is cleared
 			suite.Require().Equal(big.NewInt(0), db.GetBalance(address))
 			// but code and state are still accessible in dirty state
@@ -136,7 +138,8 @@ func (suite *StateDBTestSuite) TestDBError() {
 		}},
 		{"delete account", func(db vm.StateDB) {
 			db.SetNonce(errAddress, 1)
-			suite.Require().True(db.Suicide(errAddress))
+			db.SelfDestruct(errAddress)
+			suite.Require().True(db.HasSelfDestructed(errAddress))
 		}},
 	}
 	for _, tc := range testCases {
@@ -312,7 +315,8 @@ func (suite *StateDBTestSuite) TestRevertSnapshot() {
 		{"suicide", func(db vm.StateDB) {
 			db.SetState(address, v1, v2)
 			db.SetCode(address, []byte("hello world"))
-			suite.Require().True(db.Suicide(address))
+			db.SelfDestruct(address)
+			suite.Require().True(db.HasSelfDestructed(address))
 		}},
 		{"add log", func(db vm.StateDB) {
 			db.AddLog(&ethtypes.Log{
@@ -439,7 +443,7 @@ func (suite *StateDBTestSuite) TestAccessList() {
 				Address:     address3,
 				StorageKeys: []common.Hash{value1},
 			}}
-			db.PrepareAccessList(address, &address2, vm.PrecompiledAddressesBerlin, al)
+			db.Prepare(params.Rules{IsBerlin: true, IsShanghai: false}, address, common.Address{}, &address2, vm.PrecompiledAddressesBerlin, al)
 
 			// check sender and dst
 			suite.Require().True(db.AddressInAccessList(address))
@@ -565,7 +569,7 @@ func (suite *StateDBTestSuite) TestIterateStorage() {
 	suite.Require().Equal(1, len(storage))
 }
 
-func CollectContractStorage(db vm.StateDB) statedb.Storage {
+func CollectContractStorage(db *statedb.StateDB) statedb.Storage {
 	storage := make(statedb.Storage)
 	db.ForEachStorage(address, func(k, v common.Hash) bool {
 		storage[k] = v
