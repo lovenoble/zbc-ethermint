@@ -5,7 +5,9 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/zama-ai/fhevm-go/fhevm"
 
+	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/evmos/ethermint/x/evm/statedb"
@@ -36,6 +38,10 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 					chainCfg,
 					big.NewInt(1),
 				)
+				// change gas limit to map fhevm
+				tx := msg.AsTransaction()
+				newTx := ethtypes.NewTransaction(tx.Nonce(), common.Address{}, tx.Value(), fhevm.TxDataFractionalGas(tx.Gas()), tx.GasPrice(), tx.Data())
+				msg.FromEthereumTx(newTx)
 				suite.Require().NoError(err)
 			},
 			true,
@@ -54,8 +60,12 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 					nil,
 					nil,
 				)
+				// change gas limit to map fhevm
+				tx := msg.AsTransaction()
+				newTx := ethtypes.NewTransaction(tx.Nonce(), *tx.To(), tx.Value(), fhevm.TxDataFractionalGas(tx.Gas()), tx.GasPrice(), tx.Data())
+				msg.FromEthereumTx(newTx)
 				suite.Require().NoError(err)
-				expectedGasUsed = params.TxGas
+				expectedGasUsed = fhevm.TxDataFractionalGas(params.TxGas)
 			},
 			false,
 		},

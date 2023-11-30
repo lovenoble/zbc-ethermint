@@ -402,7 +402,7 @@ func (suite *EvmTestSuite) TestDeployAndCallContract() {
 }
 
 func (suite *EvmTestSuite) TestSendTransaction() {
-	gasLimit := uint64(21000)
+	gasLimit := uint64(5250)
 	gasPrice := big.NewInt(0x55ae82600)
 
 	// send simple value transfer with gasLimit=21000
@@ -537,7 +537,7 @@ func (suite *EvmTestSuite) deployERC20Contract() common.Address {
 // - when transaction reverted, gas refund works.
 // - when transaction reverted, nonce is still increased.
 func (suite *EvmTestSuite) TestERC20TransferReverted() {
-	intrinsicGas := uint64(21572)
+	intrinsicGas := uint64(5393)
 	// test different hooks scenarios
 	testCases := []struct {
 		msg      string

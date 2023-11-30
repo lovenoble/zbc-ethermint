@@ -469,7 +469,7 @@ func (suite *KeeperTestSuite) TestGetAccountStorage() {
 				supply := big.NewInt(100)
 				suite.DeployTestContract(suite.T(), suite.address, supply)
 			},
-			[]int{2, 0},
+			[]int{0, 0, 2, 0},
 		},
 	}
 

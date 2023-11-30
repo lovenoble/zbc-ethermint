@@ -19,6 +19,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"github.com/zama-ai/fhevm-go/fhevm"
 )
 
 func (suite *KeeperTestSuite) TestGetHashFn() {
@@ -188,7 +189,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas,
+			fhevm.TxDataFractionalGas(params.TxGas),
 		},
 		{
 			"with one zero data, no accesslist, not contract creation, not homestead, not istanbul",
@@ -197,7 +198,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas + params.TxDataZeroGas*1,
+			fhevm.TxDataFractionalGas(params.TxGas + params.TxDataZeroGas*1),
 		},
 		{
 			"with one non zero data, no accesslist, not contract creation, not homestead, not istanbul",
@@ -206,7 +207,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			true,
 			true,
-			params.TxGas + params.TxDataNonZeroGasFrontier*1,
+			fhevm.TxDataFractionalGas(params.TxGas + params.TxDataNonZeroGasFrontier),
 		},
 		{
 			"no data, one accesslist, not contract creation, not homestead, not istanbul",
@@ -217,7 +218,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas + params.TxAccessListAddressGas,
+			fhevm.TxDataFractionalGas(params.TxGas + params.TxAccessListAddressGas),
 		},
 		{
 			"no data, one accesslist with one storageKey, not contract creation, not homestead, not istanbul",
@@ -228,7 +229,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas + params.TxAccessListAddressGas + params.TxAccessListStorageKeyGas*1,
+			fhevm.TxDataFractionalGas(params.TxGas + params.TxAccessListAddressGas + params.TxAccessListStorageKeyGas),
 		},
 		{
 			"no data, no accesslist, is contract creation, is homestead, not istanbul",
@@ -237,7 +238,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			2,
 			true,
 			true,
-			params.TxGasContractCreation,
+			fhevm.TxDataFractionalGas(params.TxGasContractCreation),
 		},
 		{
 			"with one zero data, no accesslist, not contract creation, is homestead, is istanbul",
@@ -246,7 +247,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			3,
 			false,
 			true,
-			params.TxGas + params.TxDataNonZeroGasEIP2028*1,
+			fhevm.TxDataFractionalGas(params.TxGas + params.TxDataNonZeroGasEIP2028),
 		},
 	}
 
@@ -535,7 +536,7 @@ func (suite *KeeperTestSuite) TestContractDeployment() {
 }
 
 func (suite *KeeperTestSuite) TestApplyMessage() {
-	expectedGasUsed := params.TxGas
+	expectedGasUsed := uint64(10500)
 	var msg core.Message
 
 	proposerAddress := suite.ctx.BlockHeader().ProposerAddress
@@ -640,7 +641,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest()
-			expectedGasUsed = params.TxGas
+			expectedGasUsed = 10500
 
 			proposerAddress := suite.ctx.BlockHeader().ProposerAddress
 			config, err = suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(9000))
