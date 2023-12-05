@@ -649,7 +649,7 @@ else
 	@$(SUDO) chown -R $(USER): running_node/
 endif
 
-init-evmos-node-local:
+init-ethermint-node-local:
 	@docker compose -f docker-compose/docker-compose.local.yml run ethermintnodelocal bash /config/setup.sh
 	$(MAKE) change_running_node_owner
 	$(MAKE) generate-fhe-keys
@@ -665,7 +665,7 @@ else
 	@bash ./scripts/prepare_volumes_from_fhe_tool.sh $(FHEVM_TFHE_CLI_PATH)/target/release
 endif
 
-run-evmos:
+run-ethermint:
 ifeq ($(LOCAL_BUILD),true)
 	$(info LOCAL_BUILD is set, run locally built docker images)
 	@docker compose  -f docker-compose/docker-compose.local.yml -f docker-compose/docker-compose.local.override.yml  up --detach
@@ -676,7 +676,7 @@ endif
 	@echo 'sleep a little to let the docker start up'
 	sleep 10
 
-stop-evmos:
+stop-ethermint:
 ifeq ($(LOCAL_BUILD),true)
 	$(info LOCAL_BUILD is set, run locally built docker images)
 	@docker compose  -f docker-compose/docker-compose.local.yml down
@@ -693,14 +693,14 @@ run_e2e_test:
 	@sleep 5
 
 e2e-test-local: 
-	$(MAKE) init-evmos-node-local
+	$(MAKE) init-ethermint-node-local
 	$(MAKE) run_evmos
 	$(MAKE) run_e2e_test
 	$(MAKE) stop_evmos
 
 
 e2e-test-from-registry:
-	$(MAKE) init-evmos-node-from-registry
+	$(MAKE) init-ethermint-node-from-registry
 	$(MAKE) run_evmos
 	$(MAKE) run_e2e_test
 	$(MAKE) stop_evmos
