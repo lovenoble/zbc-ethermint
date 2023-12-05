@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  ethermintnodelocal:
+    image: ethermintnodelocal
+    container_name: ethermintnodelocal0
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.ethermint-node.local
+    ports:
+      - "26656-26657:26656-26657"
+      - "8545:8545"
+    volumes:
+      - ../running_node/node1:/root:Z
+      - ../running_node/gentx:/root/gentx:Z
+      - ../private.ed25519:/config/private.ed25519:Z
+      - ../public.ed25519:/config/public.ed25519:Z
+      - ../setup.sh:/config/setup.sh:Z
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      localnet:
+        ipv4_address: 192.167.10.2
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.167.10.0/16
