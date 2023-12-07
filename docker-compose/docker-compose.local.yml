@@ -13,8 +13,6 @@ services:
     volumes:
       - ../running_node/node1:/root:Z
       - ../running_node/gentx:/root/gentx:Z
-      - ../private.ed25519:/config/private.ed25519:Z
-      - ../public.ed25519:/config/public.ed25519:Z
       - ../setup.sh:/config/setup.sh:Z
     security_opt:
       - no-new-privileges:true

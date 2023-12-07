@@ -26,7 +26,7 @@ DOCKER_TAG := $(COMMIT_HASH)
 # Instead, it must be explicitly enabled and we warn when it is not.
 ENABLE_ROCKSDB ?= false
 
-
+WORKDIR ?= $(CURDIR)/work_dir
 SUDO := $(shell which sudo)
 
 GO_ETHEREUM_REPO := zbc-go-ethereum
@@ -717,10 +717,7 @@ clean-node-storage:
 	sudo rm -rf running_node
 
 clean: clean-node-storage
-	rm -rf \
-    $(BUILDDIR)/ \
-    artifacts/ \
-    tmp-swagger-gen/ \
-	$(WORKDIR)/ \
-	build
+	$(MAKE) stop-ethermint
+	rm -rf $(BUILDDIR)/
+	rm -rf $(WORKDIR)/ 
 	rm -f $(UPDATE_GO_MOD)

@@ -149,10 +149,8 @@ fi
 # Create Zama-specific directories and files.
 mkdir -p $HOME_ETHERMINTD/zama/keys/users-fhe-keys
 mkdir -p $HOME_ETHERMINTD/zama/keys/network-fhe-keys
-mkdir -p $HOME_ETHERMINTD/zama/keys/signature-keys
 mkdir -p $HOME_ETHERMINTD/zama/config
-cp ./private.ed25519 $HOME_ETHERMINTD/zama/keys/signature-keys
-cp ./public.ed25519 $HOME_ETHERMINTD/zama/keys/signature-keys
+
 
 touch $HOME/privkey
 $ETHERMINTD keys unsafe-export-eth-key $KEY1 --keyring-backend test > $HOME/privkey

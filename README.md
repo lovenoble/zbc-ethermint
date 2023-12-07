@@ -88,9 +88,6 @@ running_node/node1/.ethermintd/
         │   ├── cks
         │   ├── pks
         │   └── sks
-        ├── signature-keys
-        │   ├── private.ed25519
-        │   └── public.ed25519
         └── users-fhe-keys
 ```
 
