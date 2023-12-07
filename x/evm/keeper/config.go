@@ -66,8 +66,10 @@ func (k Keeper) VMConfig(ctx sdk.Context, _ core.Message, cfg *statedb.EVMConfig
 	}
 
 	return vm.Config{
-		Tracer:    tracer,
-		NoBaseFee: noBaseFee,
-		ExtraEips: cfg.Params.EIPs(),
+		Tracer:          tracer,
+		NoBaseFee:       noBaseFee,
+		ExtraEips:       cfg.Params.EIPs(),
+		IsEthCall:       cfg.IsEthCall,
+		IsGasEstimation: cfg.IsGasEstimation,
 	}
 }
