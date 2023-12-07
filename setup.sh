@@ -40,6 +40,21 @@ cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["crisis"]["constant_fe
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="aphoton"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["mint"]["params"]["mint_denom"]="aphoton"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 
+# Set EVM RPC HTTP server address bind to 0.0.0.0 (needed to reach docker from host)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' 's/127.0.0.1:8545/0.0.0.0:8545/g' $HOME_ETHERMINTD/config/app.toml
+  else
+    sed -i 's/127.0.0.1:8545/0.0.0.0:8545/g' $HOME_ETHERMINTD/config/app.toml
+fi
+
+# Set EVM websocket server address bind to 0.0.0.0 (needed to reach docker from host)
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' 's/127.0.0.1:8546/0.0.0.0:8546/g' $HOME_ETHERMINTD/config/app.toml
+  else
+    sed -i 's/127.0.0.1:8546/0.0.0.0:8546/g' $HOME_ETHERMINTD/config/app.toml
+fi
+
 # Set gas limit of 10000000 and txn limit of 4 MB in genesis
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.consensus_params["block"]["max_gas"]="10000000"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.consensus_params["block"]["max_bytes"]="4194304"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json

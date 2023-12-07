@@ -13,7 +13,7 @@ ETHERMINT_BINARY = ethermintd
 ETHERMINT_DIR = ethermint
 BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
-HTTPS_GIT := https://github.com/evmos/ethermint.git
+HTTPS_GIT := https://github.com/ethermint/ethermint.git
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 DOCKER := $(shell which docker)
 NAMESPACE := tharsis
@@ -25,11 +25,6 @@ DOCKER_TAG := $(COMMIT_HASH)
 # RocksDB is a native dependency, so we don't assume the library is installed.
 # Instead, it must be explicitly enabled and we warn when it is not.
 ENABLE_ROCKSDB ?= false
-
-WORKDIR ?= $(CURDIR)/work_dir
-TFHE_RS_PATH ?= $(WORKDIR)/tfhe-rs
-TFHE_RS_EXISTS := $(shell test -d $(TFHE_RS_PATH)/.git && echo "true" || echo "false")
-TFHE_RS_VERSION ?= 0.3.1
 
 
 SUDO := $(shell which sudo)
@@ -49,9 +44,10 @@ FHEVM_TFHE_CLI_PATH ?= $(WORKDIR)/fhevm-tfhe-cli
 FHEVM_TFHE_CLI_PATH_EXISTS := $(shell test -d $(FHEVM_TFHE_CLI_PATH)/.git && echo "true" || echo "false")
 FHEVM_TFHE_CLI_VERSION ?= v0.2.1
 
-FHEVM_SOLIDITY_PATH ?= $(WORKDIR)/fhevm-solidity
+FHEVM_SOLIDITY_REPO ?= fhevm
+FHEVM_SOLIDITY_PATH ?= $(WORKDIR)/$(FHEVM_SOLIDITY_REPO)
 FHEVM_SOLIDITY_PATH_EXISTS := $(shell test -d $(FHEVM_SOLIDITY_PATH)/.git && echo "true" || echo "false")
-FHEVM_SOLIDITY_VERSION ?= v0.2.2
+FHEVM_SOLIDITY_VERSION ?= 63fa1e66c7e6ed8055be1f39802f9cce502326ed
 
 export GO111MODULE = on
 
@@ -204,7 +200,7 @@ build-all: tools build lint test vulncheck
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/evmos/ethermint
+PACKAGE_NAME:=github.com/ethermint/ethermint
 GOLANG_CROSS_VERSION = v1.19
 GOPATH ?= '$(HOME)/go'
 release-dry-run:
@@ -333,7 +329,7 @@ update-swagger-docs: statik
 .PHONY: update-swagger-docs
 
 godocs:
-	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/evmos/ethermint/types"
+	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/ethermint/ethermint/types"
 	godoc -http=:6060
 
 ###############################################################################
@@ -367,7 +363,7 @@ else
 endif
 
 test-import:
-	go test -run TestImporterTestSuite -v --vet=off github.com/evmos/ethermint/tests/importer
+	go test -run TestImporterTestSuite -v --vet=off github.com/ethermint/ethermint/tests/importer
 
 test-rpc:
 	./scripts/integration-test-all.sh -t "rpc" -q 1 -z 1 -s 2 -m "rpc" -r "true"
@@ -553,8 +549,8 @@ endif
 
 clone-fhevm-solidity: $(WORKDIR)/
 	$(info Cloning fhevm-solidity version $(FHEVM_SOLIDITY_VERSION))
-	cd $(WORKDIR) && git clone git@github.com:zama-ai/fhevm-solidity.git
-	cd $(WORKDIR)/fhevm-solidity && git checkout $(FHEVM_SOLIDITY_VERSION)
+	cd $(WORKDIR) && git clone git@github.com:zama-ai/fhevm.git
+	cd $(FHEVM_SOLIDITY_PATH) && git checkout $(FHEVM_SOLIDITY_VERSION)
 
 
 clone-go-ethereum: $(WORKDIR)/
@@ -685,7 +681,7 @@ else
 	@docker compose  -f docker-compose/docker-compose.validator.yml down
 endif
 
-run_e2e_test:
+run-e2e-test:
 	@cd $(FHEVM_SOLIDITY_PATH) && npm ci
 ## Copy the run_tests.sh script directly in fhevm-solidity for the nxt version
 	@cp ./scripts/run_tests.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
@@ -694,16 +690,16 @@ run_e2e_test:
 
 e2e-test-local: 
 	$(MAKE) init-ethermint-node-local
-	$(MAKE) run_evmos
-	$(MAKE) run_e2e_test
-	$(MAKE) stop_evmos
+	$(MAKE) run-ethermint
+	$(MAKE) run-e2e-test
+	$(MAKE) stop-ethermint
 
 
 e2e-test-from-registry:
 	$(MAKE) init-ethermint-node-from-registry
-	$(MAKE) run_evmos
-	$(MAKE) run_e2e_test
-	$(MAKE) stop_evmos
+	$(MAKE) run-ethermint
+	$(MAKE) run-e2e-test
+	$(MAKE) stop-ethermint
 
 e2e-test:
 	@$(MAKE) check-all-test-repo
