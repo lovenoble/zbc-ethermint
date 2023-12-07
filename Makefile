@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+include .env
+
 PACKAGES_NOSIMULATION=$(shell go list ./... | grep -v '/simulation')
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 VERSION ?= $(shell echo $(shell git describe --tags `git rev-list --tags="v*" --max-count=1`) | sed 's/^v//')
@@ -11,7 +13,7 @@ ETHERMINT_BINARY = ethermintd
 ETHERMINT_DIR = ethermint
 BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
-HTTPS_GIT := https://github.com/evmos/ethermint.git
+HTTPS_GIT := https://github.com/ethermint/ethermint.git
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 DOCKER := $(shell which docker)
 NAMESPACE := tharsis
@@ -23,6 +25,29 @@ DOCKER_TAG := $(COMMIT_HASH)
 # RocksDB is a native dependency, so we don't assume the library is installed.
 # Instead, it must be explicitly enabled and we warn when it is not.
 ENABLE_ROCKSDB ?= false
+
+WORKDIR ?= $(CURDIR)/work_dir
+SUDO := $(shell which sudo)
+
+GO_ETHEREUM_REPO := zbc-go-ethereum
+# GO_ETHEREUM_VERSION := $(shell ./scripts/get_module_version.sh go.mod zama.ai/zbc-go-ethereum)
+GO_ETHEREUM_VERSION := 147a68bcd51dcf58e9109f1e09e02900f7159622
+UPDATE_GO_MOD = go.mod.updated
+
+FHEVM_GO_REPO := fhevm-go
+FHEVM_GO_VERSION := b32ca7a96ce5f6c91445e96b3ee4b547cd5ec87f
+
+
+# If false, fhevm-tfhe-cli is cloned, built (version is FHEVM_TFHE_CLI_VERSION)
+USE_DOCKER_FOR_FHE_KEYS ?= true
+FHEVM_TFHE_CLI_PATH ?= $(WORKDIR)/fhevm-tfhe-cli
+FHEVM_TFHE_CLI_PATH_EXISTS := $(shell test -d $(FHEVM_TFHE_CLI_PATH)/.git && echo "true" || echo "false")
+FHEVM_TFHE_CLI_VERSION ?= v0.2.1
+
+FHEVM_SOLIDITY_REPO ?= fhevm
+FHEVM_SOLIDITY_PATH ?= $(WORKDIR)/$(FHEVM_SOLIDITY_REPO)
+FHEVM_SOLIDITY_PATH_EXISTS := $(shell test -d $(FHEVM_SOLIDITY_PATH)/.git && echo "true" || echo "false")
+FHEVM_SOLIDITY_VERSION ?= 63fa1e66c7e6ed8055be1f39802f9cce502326ed
 
 export GO111MODULE = on
 
@@ -175,7 +200,7 @@ build-all: tools build lint test vulncheck
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/evmos/ethermint
+PACKAGE_NAME:=github.com/ethermint/ethermint
 GOLANG_CROSS_VERSION = v1.19
 GOPATH ?= '$(HOME)/go'
 release-dry-run:
@@ -304,7 +329,7 @@ update-swagger-docs: statik
 .PHONY: update-swagger-docs
 
 godocs:
-	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/evmos/ethermint/types"
+	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/ethermint/ethermint/types"
 	godoc -http=:6060
 
 ###############################################################################
@@ -338,7 +363,7 @@ else
 endif
 
 test-import:
-	go test -run TestImporterTestSuite -v --vet=off github.com/evmos/ethermint/tests/importer
+	go test -run TestImporterTestSuite -v --vet=off github.com/ethermint/ethermint/tests/importer
 
 test-rpc:
 	./scripts/integration-test-all.sh -t "rpc" -q 1 -z 1 -s 2 -m "rpc" -r "true"
@@ -502,3 +527,197 @@ localnet-show-logstream:
 	docker-compose logs --tail=1000 -f
 
 .PHONY: build-docker-local-ethermint localnet-start localnet-stop
+
+
+###############################################################################
+###                                Single validator                         ###
+###############################################################################
+
+
+$(WORKDIR)/:
+	$(info WORKDIR)
+	mkdir -p $(WORKDIR)
+
+build-docker:
+ifeq ($(LOCAL_BUILD),true)
+	$(info LOCAL_BUILD is set, build from sources)
+	@$(MAKE) build-local-docker
+else
+	$(info LOCAL_BUILD is not set, use docker registry for docker images)
+	@$(MAKE) build-from-registry
+endif
+
+clone-fhevm-solidity: $(WORKDIR)/
+	$(info Cloning fhevm-solidity version $(FHEVM_SOLIDITY_VERSION))
+	cd $(WORKDIR) && git clone git@github.com:zama-ai/fhevm.git
+	cd $(FHEVM_SOLIDITY_PATH) && git checkout $(FHEVM_SOLIDITY_VERSION)
+
+
+clone-go-ethereum: $(WORKDIR)/
+	$(info Cloning $(GO_ETHEREUM_REPO) version $(GO_ETHEREUM_VERSION))
+	@if [ -d "$(WORKDIR)/$(GO_ETHEREUM_REPO)" ] && [ "$(ls -A $(WORKDIR)/$(GO_ETHEREUM_REPO))" ]; then \
+    	echo "$(WORKDIR)/$(GO_ETHEREUM_REPO) already exists and is not empty. Skipping git clone."; \
+	else \
+		cd $(WORKDIR) && git clone git@github.com:zama-ai/$(GO_ETHEREUM_REPO).git; \
+		cd $(WORKDIR)/$(GO_ETHEREUM_REPO) && git checkout $(GO_ETHEREUM_VERSION); \
+	fi
+
+clone-fhevm-go: $(WORKDIR)/
+	$(info Cloning $(FHEVM_GO_REPO) version $(FHEVM_GO_VERSION))
+	@if [ -d "$(WORKDIR)/$(FHEVM_GO_REPO)" ] && [ "$(ls -A $(WORKDIR)/$(FHEVM_GO_REPO))" ]; then \
+		echo "$(WORKDIR)/$(FHEVM_GO_REPO) already exists and is not empty. Skipping git clone."; \
+	else \
+		cd $(WORKDIR) && git clone git@github.com:zama-ai/$(FHEVM_GO_REPO).git; \
+		cd $(WORKDIR)/$(FHEVM_GO_REPO) && git checkout $(FHEVM_GO_VERSION); \
+		cd $(WORKDIR)/$(FHEVM_GO_REPO) && git submodule update --init --recursive; \
+	fi
+
+
+check-fhevm-tfhe-cli: $(WORKDIR)/
+	$(info check-fhevm-tfhe-cli)
+	@echo "FHEVM_TFHE_CLI_PATH_EXISTS  $(FHEVM_TFHE_CLI_PATH_EXISTS)"
+ifeq ($(FHEVM_TFHE_CLI_PATH_EXISTS), true)
+	@echo "fhevm-tfhe-cli exists in $(FHEVM_TFHE_CLI_PATH)"
+	@if [ ! -d $(WORKDIR)/fhevm-tfhe-cli ]; then \
+        echo 'fhevm-tfhe-cli is not available in $(WORKDIR)'; \
+        echo "FHEVM_TFHE_CLI_PATH is set to a custom value"; \
+    else \
+        echo 'fhevm-tfhe-cli is already available in $(WORKDIR)'; \
+    fi
+else
+	@echo "fhevm-tfhe-cli does not exist in $(FHEVM_TFHE_CLI_PATH)"
+	echo "We clone it for you!"
+	echo "If you want your own version please update FHEVM_TFHE_CLI_PATH pointing to your fhevm-tfhe-cli folder!"
+	$(MAKE) clone_fhevm_tfhe_cli
+endif
+	echo 'Call build zbc fhe'
+	$(MAKE) build_fhevm_tfhe_cli
+
+
+check-fhevm-solidity: $(WORKDIR)/
+	$(info check-fhevm-solidity)
+ifeq ($(FHEVM_SOLIDITY_PATH_EXISTS), true)
+	@echo "fhevm-solidity exists in $(FHEVM_SOLIDITY_PATH)"
+	@if [ ! -d $(WORKDIR)/fhevm-solidity ]; then \
+        echo 'fhevm-solidity is not available in $(WORKDIR)'; \
+        echo "FHEVM_SOLIDITY_PATH is set to a custom value"; \
+    else \
+        echo 'fhevm-solidity is already available in $(WORKDIR)'; \
+    fi
+else
+	@echo "fhevm-solidity does not exist"
+	echo "We clone it for you!"
+	echo "If you want your own version please update FHEVM_SOLIDITY_PATH pointing to your fhevm-solidity folder!"
+	$(MAKE) clone-fhevm-solidity
+endif
+
+
+check-all-test-repo: check-fhevm-solidity
+
+update-go-mod:
+	@cp go.mod $(UPDATE_GO_MOD)
+	@bash scripts/replace_go_mod.sh $(UPDATE_GO_MOD) t
+
+
+
+build-local:   go.sum $(BUILDDIR)/
+	$(info build-local for docker build)
+	go build $(BUILD_FLAGS) -o build $(BUILD_ARGS) ./...
+	@echo 'ethermintd binary is ready in build folder'
+
+build-local-docker:
+ifeq ($(GITHUB_ACTIONS),true)
+	$(info Running in a GitHub Actions workflow)
+else
+	$(info Not running in a GitHub Actions workflow)
+	@$(MAKE) clone-go-ethereum
+	@$(MAKE) clone-fhevm-go
+endif
+	$(MAKE) update-go-mod
+	@docker compose  -f docker-compose/docker-compose.local.yml build ethermintnodelocal
+
+change_running_node_owner:
+ifeq ($(GITHUB_ACTIONS),true)
+	$(info Running e2e-test-local in a GitHub Actions workflow)
+	sudo chown -R runner:docker running_node/
+else
+	$(info Not running e2e-test-local in a GitHub Actions workflow)
+	@$(SUDO) chown -R $(USER): running_node/
+endif
+
+init-ethermint-node-local:
+	@docker compose -f docker-compose/docker-compose.local.yml run ethermintnodelocal bash /config/setup.sh
+	$(MAKE) change_running_node_owner
+	$(MAKE) generate-fhe-keys
+
+
+generate-fhe-keys:
+ifeq ($(USE_DOCKER_FOR_FHE_KEYS),true)
+	$(info USE_DOCKER_FOR_FHE_KEYS is set, use docker)
+	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node1/.ethermintd/zama/keys/network-fhe-keys
+else
+	$(info USE_DOCKER_FOR_FHE_KEYS is not set, build from sources)
+	@$(MAKE) check-fhevm-tfhe-cli
+	@bash ./scripts/prepare_volumes_from_fhe_tool.sh $(FHEVM_TFHE_CLI_PATH)/target/release
+endif
+
+run-ethermint:
+ifeq ($(LOCAL_BUILD),true)
+	$(info LOCAL_BUILD is set, run locally built docker images)
+	@docker compose  -f docker-compose/docker-compose.local.yml -f docker-compose/docker-compose.local.override.yml  up --detach
+else
+	$(info LOCAL_BUILD is not set, run docker images from docker registry)
+	@docker compose  -f docker-compose/docker-compose.validator.yml -f docker-compose/docker-compose.validator.override.yml  up --detach
+endif
+	@echo 'sleep a little to let the docker start up'
+	sleep 10
+
+stop-ethermint:
+ifeq ($(LOCAL_BUILD),true)
+	$(info LOCAL_BUILD is set, run locally built docker images)
+	@docker compose  -f docker-compose/docker-compose.local.yml down
+else
+	$(info LOCAL_BUILD is not set, run docker images from docker registry)
+	@docker compose  -f docker-compose/docker-compose.validator.yml down
+endif
+
+run-e2e-test:
+	@cd $(FHEVM_SOLIDITY_PATH) && npm ci
+## Copy the run_tests.sh script directly in fhevm-solidity for the nxt version
+	@cp ./scripts/run_tests.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
+	@cd $(FHEVM_SOLIDITY_PATH) && ci/scripts/run_tests.sh
+	@sleep 5
+
+e2e-test-local: 
+	$(MAKE) init-ethermint-node-local
+	$(MAKE) run-ethermint
+	$(MAKE) run-e2e-test
+	$(MAKE) stop-ethermint
+
+
+e2e-test-from-registry:
+	$(MAKE) init-ethermint-node-from-registry
+	$(MAKE) run-ethermint
+	$(MAKE) run-e2e-test
+	$(MAKE) stop-ethermint
+
+e2e-test:
+	@$(MAKE) check-all-test-repo
+ifeq ($(LOCAL_BUILD),true)
+	$(info LOCAL_BUILD is set, run e2e test from locally built docker images)
+	@$(MAKE) e2e-test-local
+else
+	$(info LOCAL_BUILD is not set, use docker registry for docker images)
+	@$(MAKE) e2e-test-from-registry
+endif
+
+
+clean-node-storage:
+	@echo 'clean node storage'
+	sudo rm -rf running_node
+
+clean: clean-node-storage
+	$(MAKE) stop-ethermint
+	rm -rf $(BUILDDIR)/
+	rm -rf $(WORKDIR)/ 
+	rm -f $(UPDATE_GO_MOD)

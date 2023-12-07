@@ -43,32 +43,74 @@ parent:
 THe goal of this repository is to take the last version of Ethermint using
 CometBFT and use it for our own lightweight, easy to upgrade stack.
 
-For now this is only exploratory work.
+STATUS:
 
-The roadmap is:
+For now Ethermint is using the last version of go-ethereum (v1.13.5).
+Fhevm-go is integrated. 
 
-1. Start from the original go-ethereum version i.e. v1.10.26
-2. Upgrade go-ethereum version by version and updates ethermint accordingly
-   until the most up-to-date go-ethereum
-3. Clean most of modules we do not need
-4. Integrate fhevm-go
 
-## How to proceed
 
-- Update go.mod with the new version of go-ethereum, e.g. v1.11.0
-- Another way is to use a custom go-ethereum with the right version and link it
-  to ethermint thank to go.mod file (in replace section at the bottom):
-  ```bash
-  github.com/ethereum/go-ethereum v1.10.26 => ../go-ethereum
-  ```
-- Check build is ok.
-  ```bash
-  make build
-  ```
-- If errors, fix them on Ethermint, commit and continue with the new version
-  v.1.11.1 ...
+## How to run using docker locally
 
-- The goal is to reach go-ethereum v1.13.4.
+```bash
+make build-local-docker
+```
+
+This create the image **ethermintnodelocal**
+
+Init the node (configuration files)
+
+```bash
+make init-ethermint-node-local
+```
+
+THis will create every need files under __running_node/node1/.ethermintd__.
+```bash
+running_node/node1/.ethermintd/
+├── config
+│   ├── app.toml
+│   ├── client.toml
+│   ├── config.toml
+│   ├── genesis.json
+│   ├── gentx
+│   │   └── gentx-e65f04e8cb66e1978bf41a3b0d3149cdb5cd8f78.json
+│   ├── node_key.json
+│   └── priv_validator_key.json
+├── data
+│   └── priv_validator_state.json
+├── keyring-test
+│   ├── 757bf1fc01075ac7c95bc8407e306cb21c1476c1.address
+│   └── orchestrator.info
+└── zama
+    ├── config
+    └── keys
+        ├── network-fhe-keys
+        │   ├── cks
+        │   ├── pks
+        │   └── sks
+        └── users-fhe-keys
+```
+
+Run/stop the node
+```bash
+make run-ethermint
+make stop-ethermint
+```
+
+Get the logs
+```bash
+docker logs ethermintnodelocal0 -f
+```
+
+Give Alice (first account in fhevm test) some coins:
+```bash
+docker exec -i ethermintnodelocal0 faucet 0xa5e1defb98EFe38EBb2D958CEe052410247F4c80
+# bob
+docker exec -i ethermintnodelocal0 faucet 0xfCefe53c7012a075b8a711df391100d9c431c468
+
+```
+
+
 
 > [!WARNING] Evmos, the team behind Ethermint, has fully shifted its focus to
 > [Evmos](https://github.com/evmos/evmos), where we continue to build
