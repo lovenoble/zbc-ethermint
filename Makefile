@@ -30,12 +30,11 @@ WORKDIR ?= $(CURDIR)/work_dir
 SUDO := $(shell which sudo)
 
 GO_ETHEREUM_REPO := zbc-go-ethereum
-# GO_ETHEREUM_VERSION := $(shell ./scripts/get_module_version.sh go.mod zama.ai/zbc-go-ethereum)
-GO_ETHEREUM_VERSION := 147a68bcd51dcf58e9109f1e09e02900f7159622
+GO_ETHEREUM_VERSION := $(shell ./scripts/get_module_version.sh go.mod zama.ai/zbc-go-ethereum)
 UPDATE_GO_MOD = go.mod.updated
 
 FHEVM_GO_REPO := fhevm-go
-FHEVM_GO_VERSION := b32ca7a96ce5f6c91445e96b3ee4b547cd5ec87f
+FHEVM_GO_VERSION :=  $(shell ./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)
 
 
 # If false, fhevm-tfhe-cli is cloned, built (version is FHEVM_TFHE_CLI_VERSION)

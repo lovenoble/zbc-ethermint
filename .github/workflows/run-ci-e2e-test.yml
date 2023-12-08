@@ -1,0 +1,21 @@
+name: Run ci e2e test
+
+on:
+  # this is useful to trigger test from PRs, or even manually with specific commits/tags
+  workflow_dispatch:
+    inputs:
+      geth_commit:
+        description: "go-ethereum commit/tag to use"
+        type: string
+        default: ''
+        required: false
+      fhevm_go_commit:
+        description: "fhevm-go commit/tag to use"
+        type: string
+        default: ''
+        required: false
+      fhevm_solidity_commit:
+        description: "fhevm_solidity commit/tag to use"
+        type: string
+        default: ''
+        required: false
