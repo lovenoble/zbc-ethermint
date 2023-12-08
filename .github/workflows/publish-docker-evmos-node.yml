@@ -41,11 +41,15 @@ jobs:
       - name: Get version for all needed repositories
         working-directory: ./ethermint
         run: |
+          echo "TFHE_RS_VERSION=$(./scripts/get_version_from_makefile.sh TFHE_RS_VERSION)" >> $GITHUB_ENV
           echo "GO_ETHEREUM_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/zbc-go-ethereum)" >> $GITHUB_ENV
+          echo "FHEVM_GO_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)" >> $GITHUB_ENV
           
       - name: Echo versions parsed from Makefile and go.mod
         run: |
+          echo "TFHE_RS_VERSION: $TFHE_RS_VERSION"
           echo "GO_ETHEREUM_VERSION: $GO_ETHEREUM_VERSION"
+          echo "FHEVM_GO_VERSION: $FHEVM_GO_VERSION"
 
       - name: Checkout go-ethereum
         uses: actions/checkout@v3
@@ -54,6 +58,21 @@ jobs:
           token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
           path: ./ethermint/work_dir/zbc-go-ethereum
           ref: ${{ env.GO_ETHEREUM_VERSION }}
+
+      - name: Checkout fhevm-go
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/fhevm-go
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: ./ethermint/work_dir/fhevm-go
+          ref: ${{ env.FHEVM_GO_VERSION }}
+
+      - name: Checkout tfhe-rs
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/tfhe-rs
+          path: ./ethermint/work_dir/fhevm-go/tfhe-rs
+          ref: ${{ env.TFHE_RS_VERSION }}
 
 
       - name: Check OS
@@ -85,6 +104,7 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
+          ls ${{ github.workspace }}/ethermint/work_dir
           tree -L 2
 
       - name: Set up Docker Buildx
