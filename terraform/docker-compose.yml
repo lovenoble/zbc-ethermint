@@ -1,0 +1,15 @@
+version: "3"
+services:
+  validator:
+    image: tharsishq/evmos:v15.0.0
+    network_mode: host
+    restart: always
+    volumes:
+      - /home/ubuntu/evmosd:/evmos
+    command:
+      - /evmos/multi-node-start.sh
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:26657/status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5

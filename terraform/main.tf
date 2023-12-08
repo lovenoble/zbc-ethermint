@@ -148,6 +148,7 @@ resource "aws_instance" "validator_testnet_vpn" {
                 #!/bin/bash
                 apt-get update -y
                 apt-get upgrade -y
+
                 # nat forwarding
                 sysctl -w net.ipv4.ip_forward=1
                 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
@@ -177,6 +178,7 @@ resource "aws_instance" "validator_testnet_vpn" {
                 systemctl enable nat-instance.service
                 systemctl restart nat-instance.service
 
+
                 EOF
                 
   tags = {
@@ -196,9 +198,6 @@ resource "aws_instance" "validator_testnet_workers" {
 
   user_data = <<-EOF
                 #!/bin/bash
-                apt-get update -y
-                apt-get upgrade -y
-
                 # add route to the internet via our vpn nat instance
                 echo '[Unit]
                 Description=Set up NAT instance for internal nodes
@@ -214,6 +213,18 @@ resource "aws_instance" "validator_testnet_workers" {
                 systemctl daemon-reload
                 systemctl enable nat-route.service
                 systemctl restart nat-route.service
+
+                apt-get update -y
+                apt-get upgrade -y
+
+                apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                apt-get update -y
+
+                apt-get install -y docker-ce
+
+                usermod -aG docker ubuntu
 
                 EOF
 
