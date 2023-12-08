@@ -1,0 +1,15 @@
+name: Publish ethermint node
+
+on:
+  workflow_dispatch:
+    inputs:
+      zbc_build_image_tag:
+        description: 'Tag for zbc build docker image (defaul:latest)'
+        required: true
+        default: "latest"
+        type: string
+      ethermint_node_tag:
+        description: 'ethermint node tag (default: latest)'
+        default: "latest"
+        type: string
+        required: false

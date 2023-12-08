@@ -1309,6 +1309,10 @@ github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
+github.com/zama-ai/fhevm-go v0.1.0 h1:tqiZHOvGXsysqU6Ejm8BBmjw16yg4ok2elAMzkkP814=
+github.com/zama-ai/fhevm-go v0.1.0/go.mod h1:V2Y/0KtwfU0TMJungAu+FL2XcDUKm+kp/A8MxpKWKPE=
+github.com/zama-ai/zbc-go-ethereum v0.1.0 h1:l0XskR4sJAjtEjmnKzv3iAEEe6yELEJAIdEN4tS/8Z8=
+github.com/zama-ai/zbc-go-ethereum v0.1.0/go.mod h1:yYSKhxOD31kBOEL41d7IS3Bo4QmsCQFcDbm9RKfRjWw=
 github.com/zondax/hid v0.9.1 h1:gQe66rtmyZ8VeGFcOpbuH3r7erYtNEAezCAYu8LdkJo=
 github.com/zondax/hid v0.9.1/go.mod h1:l5wttcP0jwtdLjqjMMWFVEE7d1zO0jvSPA9OPZxWpEM=
 github.com/zondax/ledger-go v0.14.1 h1:Pip65OOl4iJ84WTpA4BKChvOufMhhbxED3BaihoZN4c=
