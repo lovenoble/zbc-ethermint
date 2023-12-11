@@ -24,7 +24,13 @@ jobs:
           check-latest: true
       - uses: actions/checkout@v3
         with:
+          repository: zama-ai/zbc-go-ethereum
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: zbc-go-ethereum
+      - uses: actions/checkout@v3
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          path: zbc-ethermint
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -33,6 +39,7 @@ jobs:
             go.mod
             go.sum
       - name: Test and Create Coverage Report
+        working-directory: zbc-ethermint
         run: |
           make test-unit-cover
         if: env.GIT_DIFF
@@ -53,7 +60,13 @@ jobs:
           check-latest: true
       - uses: actions/checkout@v3
         with:
+          repository: zama-ai/zbc-go-ethereum
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: zbc-go-ethereum
+      - uses: actions/checkout@v3
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          path: zbc-ethermint
       - uses: technote-space/get-diff-action@v6.1.2
         id: git_diff
         with:
@@ -62,6 +75,7 @@ jobs:
             go.mod
             go.sum
       - name: test-importer
+        working-directory: zbc-ethermint
         run: |
           make test-import
         if: env.GIT_DIFF
@@ -76,7 +90,13 @@ jobs:
           check-latest: true
       - uses: actions/checkout@v3
         with:
+          repository: zama-ai/zbc-go-ethereum
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: zbc-go-ethereum
+      - uses: actions/checkout@v3
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          path: zbc-ethermint
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -85,6 +105,7 @@ jobs:
             go.mod
             go.sum
       - name: Test rpc endpoint
+        working-directory: zbc-ethermint
         run: |
           make test-rpc
         if: env.GIT_DIFF
@@ -94,7 +115,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          repository: zama-ai/zbc-go-ethereum
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: zbc-go-ethereum
+      - uses: actions/checkout@v3
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          path: zbc-ethermint
       - uses: cachix/install-nix-action@v20
       - uses: cachix/cachix-action@v12
         with:
@@ -109,6 +136,7 @@ jobs:
             go.sum
             tests/integration_tests/**
       - name: Run integration tests
+        working-directory: zbc-ethermint
         run: make run-integration-tests
         if: env.GIT_DIFF
       - name: 'Tar debug files'
