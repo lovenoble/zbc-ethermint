@@ -603,7 +603,7 @@ check-fhevm-solidity: $(WORKDIR)/
 	$(info check-fhevm-solidity)
 ifeq ($(FHEVM_SOLIDITY_PATH_EXISTS), true)
 	@echo "fhevm-solidity exists in $(FHEVM_SOLIDITY_PATH)"
-	@if [ ! -d $(WORKDIR)/fhevm-solidity ]; then \
+	@if [ ! -d $(WORKDIR)/fhevm ]; then \
         echo 'fhevm-solidity is not available in $(WORKDIR)'; \
         echo "FHEVM_SOLIDITY_PATH is set to a custom value"; \
     else \
@@ -689,6 +689,7 @@ run-e2e-test:
 	@cd $(FHEVM_SOLIDITY_PATH) && npm ci
 ## Copy the run_tests.sh script directly in fhevm-solidity for the nxt version
 	@cp ./scripts/run_tests.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
+	@sleep 30
 	@cd $(FHEVM_SOLIDITY_PATH) && ci/scripts/run_tests.sh
 	@sleep 5
 
