@@ -23,6 +23,8 @@ jobs:
           go-version: 1.19
           check-latest: true
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -50,6 +52,8 @@ jobs:
           go-version: 1.19
           check-latest: true
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: technote-space/get-diff-action@v6.1.2
         id: git_diff
         with:
@@ -71,6 +75,8 @@ jobs:
           go-version: 1.19
           check-latest: true
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -87,6 +93,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: cachix/install-nix-action@v20
       - uses: cachix/cachix-action@v12
         with:
@@ -122,6 +130,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: cachix/install-nix-action@v20
       - uses: cachix/cachix-action@v12
         with:
