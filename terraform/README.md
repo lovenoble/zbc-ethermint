@@ -13,7 +13,13 @@ echo 'ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFCo2+r+BHQXwUn0hgS2
 
 ## Requirements
 
-sshuttle, terraform, jq
+### Software
+
+`sshuttle`, `terraform`, `jq`
+
+### Credentials
+
+Github token and user to allow pulling docker image from `ghcr.io/zama-ai/ethermint-node`
 
 ## Running terraform
 

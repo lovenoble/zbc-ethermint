@@ -1,13 +1,17 @@
 version: "3"
 services:
   validator:
-    image: tharsishq/evmos:v15.0.0
+    image: ghcr.io/zama-ai/ethermint-node:latest
     network_mode: host
     restart: always
+      #environment:
+      # TODO: figure out what to do with keys,
+      # if we don't upload sks it doesn't work
+      # - FHEVM_GO_KEYS_DIR=/ethermint/fhevm-keys
     volumes:
-      - /home/ubuntu/evmosd:/evmos
+      - /home/ubuntu/ethermintd:/ethermint
     command:
-      - /evmos/multi-node-start.sh
+      - /ethermint/multi-node-start.sh
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:26657/status" ]
       interval: 30s

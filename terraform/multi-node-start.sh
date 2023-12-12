@@ -1,11 +1,10 @@
 #!/bin/bash
 
-# if chain not defined, defaults to evmos
-if [[ -z "${CHAIN}" ]]; then CHAIN="evmos"; fi
 
+CHAIN=evmos
 CHAIN_ID="$CHAIN"_9000-1
-CHAIND=evmosd
-DATA_DIR=/$CHAIN
+CHAIND=/usr/bin/ethermintd
+DATA_DIR=/ethermint
 CONFIG=$DATA_DIR/config/config.toml
 APP_CONFIG=$DATA_DIR/config/app.toml
 
