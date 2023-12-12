@@ -689,7 +689,7 @@ run-e2e-test:
 	@cd $(FHEVM_SOLIDITY_PATH) && npm ci
 ## Copy the run_tests.sh script directly in fhevm-solidity for the nxt version
 	@cp ./scripts/run_tests.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
-	@sleep 30
+	@sleep 60
 	@cd $(FHEVM_SOLIDITY_PATH) && ci/scripts/run_tests.sh
 	@sleep 5
 
