@@ -36,6 +36,8 @@ UPDATE_GO_MOD = go.mod.updated
 FHEVM_GO_REPO := fhevm-go
 FHEVM_GO_VERSION :=  $(shell ./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)
 
+TFHE_RS_VERSION ?= 0.3.1
+
 
 # If false, fhevm-tfhe-cli is cloned, built (version is FHEVM_TFHE_CLI_VERSION)
 USE_DOCKER_FOR_FHE_KEYS ?= true
@@ -537,6 +539,10 @@ $(WORKDIR)/:
 	$(info WORKDIR)
 	mkdir -p $(WORKDIR)
 
+# Specific build for publish-ethermint-node workflow	
+prepare-docker-publish:
+	$(MAKE) update-go-mod
+
 build-docker:
 ifeq ($(LOCAL_BUILD),true)
 	$(info LOCAL_BUILD is set, build from sources)
@@ -597,7 +603,7 @@ check-fhevm-solidity: $(WORKDIR)/
 	$(info check-fhevm-solidity)
 ifeq ($(FHEVM_SOLIDITY_PATH_EXISTS), true)
 	@echo "fhevm-solidity exists in $(FHEVM_SOLIDITY_PATH)"
-	@if [ ! -d $(WORKDIR)/fhevm-solidity ]; then \
+	@if [ ! -d $(WORKDIR)/fhevm ]; then \
         echo 'fhevm-solidity is not available in $(WORKDIR)'; \
         echo "FHEVM_SOLIDITY_PATH is set to a custom value"; \
     else \
@@ -615,7 +621,7 @@ check-all-test-repo: check-fhevm-solidity
 
 update-go-mod:
 	@cp go.mod $(UPDATE_GO_MOD)
-	@bash scripts/replace_go_mod.sh $(UPDATE_GO_MOD) t
+	@bash scripts/replace_go_mod.sh $(UPDATE_GO_MOD)
 
 
 
@@ -648,7 +654,6 @@ init-ethermint-node-local:
 	@docker compose -f docker-compose/docker-compose.local.yml run ethermintnodelocal bash /config/setup.sh
 	$(MAKE) change_running_node_owner
 	$(MAKE) generate-fhe-keys
-
 
 generate-fhe-keys:
 ifeq ($(USE_DOCKER_FOR_FHE_KEYS),true)
@@ -684,6 +689,7 @@ run-e2e-test:
 	@cd $(FHEVM_SOLIDITY_PATH) && npm ci
 ## Copy the run_tests.sh script directly in fhevm-solidity for the nxt version
 	@cp ./scripts/run_tests.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
+	@sleep 30
 	@cd $(FHEVM_SOLIDITY_PATH) && ci/scripts/run_tests.sh
 	@sleep 5
 
