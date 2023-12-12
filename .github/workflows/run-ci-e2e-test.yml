@@ -22,7 +22,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest-16core
+    runs-on: "large_ubuntu_16"
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     steps:
       - name: Install Node.js and npm
