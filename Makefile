@@ -549,7 +549,6 @@ ifeq ($(LOCAL_BUILD),true)
 	@$(MAKE) build-local-docker
 else
 	$(info LOCAL_BUILD is not set, use docker registry for docker images)
-	@$(MAKE) build-from-registry
 endif
 
 clone-fhevm-solidity: $(WORKDIR)/
