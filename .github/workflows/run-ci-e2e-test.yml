@@ -43,7 +43,7 @@ jobs:
           echo "FHEVM_TFHE_CLI_VERSION=$(./scripts/get_version_from_makefile.sh FHEVM_TFHE_CLI_VERSION)" >> $GITHUB_ENV
           echo "FHEVM_GO_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)" >> $GITHUB_ENV
           echo "FHEVM_SOLIDITY_VERSION=$(./scripts/get_version_from_makefile.sh FHEVM_SOLIDITY_VERSION)" >> $GITHUB_ENV
-          echo "GO_ETHEREUM_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/go-ethereum)" >> $GITHUB_ENV
+          echo "GO_ETHEREUM_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/zbc-go-ethereum)" >> $GITHUB_ENV
 
       # this overrides the previous geth version
       - name: Set go-ethereum version if specified
@@ -53,7 +53,7 @@ jobs:
       # this overrides the previous fhevm_go version
       - name: Set fhevm-go version if specified
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.fhevm_go_commit != ''
-        run: echo "FHEVM_GO_VERSION=${{ github.event.inputs.geth_commit }}" >> $GITHUB_ENV
+        run: echo "FHEVM_GO_VERSION=${{ github.event.inputs.fhevm_go_commit }}" >> $GITHUB_ENV
 
       # this overrides the previous fhevm_solidity version
       - name: Set fhevm_solidity version if specified
