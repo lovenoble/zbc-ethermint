@@ -1,17 +1,16 @@
 version: "3"
 services:
   validator:
-    image: ghcr.io/zama-ai/ethermint-node:latest
+    image: DOCKER_IMAGE
     network_mode: host
     restart: always
-      #environment:
-      # TODO: figure out what to do with keys,
-      # if we don't upload sks it doesn't work
-      # - FHEVM_GO_KEYS_DIR=/ethermint/fhevm-keys
+    environment:
+      - FHEVM_GO_KEYS_DIR=/root/.ethermintd/fhevm-keys
+      - ZAMA_TESTNET=true
     volumes:
-      - /home/ubuntu/ethermintd:/ethermint
+      - /home/ubuntu/ethermintd:/root/.ethermintd
     command:
-      - /ethermint/multi-node-start.sh
+      - /root/.ethermintd/multi-node-start.sh
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:26657/status" ]
       interval: 30s

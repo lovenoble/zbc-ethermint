@@ -1,10 +1,10 @@
 #!/bin/bash
 
 
-CHAIN=evmos
+CHAIN=ethermint
 CHAIN_ID="$CHAIN"_9000-1
 CHAIND=/usr/bin/ethermintd
-DATA_DIR=/ethermint
+DATA_DIR=/root/.ethermintd
 CONFIG=$DATA_DIR/config/config.toml
 APP_CONFIG=$DATA_DIR/config/app.toml
 
@@ -26,7 +26,7 @@ sed -i.bak 's/enable = true/enable = false/g' "$CONFIG"
 # Change max_subscription to for bots workers
 # toml-cli set $CONFIG rpc.max_subscriptions_per_client 500
 # Change max_subscription to for bots workers
-sed -i.bak 's/max_subscriptions_per_client = 5/max_subscriptions_per_client = 500/g' "$CONFIG"
+sed -i.bak 's/max_subscriptions_per_client = 5/max_subscriptions_per_client = 600/g' "$CONFIG"
 
 sed -i.bak 's/indexer = "null"/indexer = "kv"/g' "$CONFIG"
 sed -i.bak 's/namespace = "tendermint"/namespace = "cometbft"/g' "$CONFIG"
@@ -44,7 +44,7 @@ fi
 
 echo "running $CHAIN with extra flags $EXTRA_FLAGS"
 echo "starting $CHAIN node in background ..."
-echo "$CHAIND start "$pruning" --rpc.unsafe --keyring-backend test --home "$DATA_DIR" "$EXTRA_FLAGS" >"$DATA_DIR"/node.log"
+echo "$CHAIND start "$pruning" --rpc.unsafe --keyring-backend test "$EXTRA_FLAGS" >"$DATA_DIR"/node.log"
 $CHAIND start --rpc.unsafe \
 --json-rpc.enable true --api.enable \
---keyring-backend test --home $DATA_DIR --chain-id $CHAIN_ID $EXTRA_FLAGS
+--keyring-backend test --chain-id $CHAIN_ID $EXTRA_FLAGS

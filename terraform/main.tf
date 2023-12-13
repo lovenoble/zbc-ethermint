@@ -127,7 +127,7 @@ resource "aws_security_group_rule" "vpn_sg_internet" {
 # Create the VPN server in a public subnet with public IP and Elastic IP and update its variable to use the EIP
 resource "aws_instance" "validator_testnet_vpn" {
   ami = "${var.ami}"
-  instance_type = "t2.nano"
+  instance_type = "c5n.large"
   associate_public_ip_address = true
   private_ip = "10.0.0.100"
   subnet_id = aws_subnet.internal_subnet.id
@@ -152,8 +152,31 @@ resource "aws_instance" "validator_testnet_vpn" {
                 # nat forwarding
                 sysctl -w net.ipv4.ip_forward=1
                 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
-                # wireguard
-                apt-get install -y wireguard
+
+                # ubuntu throws interactive scripts for nginx install otherwise
+                sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+
+                # allow nginx to serve files for our private keys
+                chmod 755 /home/ubuntu
+
+                # nginx to serve sks/pks/cks keys
+                apt-get install -y nginx bmon
+
+                echo 'server {
+                  listen 10.0.0.100:80 default_server;
+
+                  root /home/ubuntu/fhevm-keys;
+
+                  server_name _;
+
+                  location / {
+                    # First attempt to serve request as file, then
+                    # as directory, then fall back to displaying a 404.
+                    try_files $uri $uri/ =404;
+                  }
+                }' > /etc/nginx/sites-available/default
+
+                nginx -s reload
 
                 # create service to set up NAT rules upon every reboot
                 echo '[Unit]
@@ -170,7 +193,7 @@ resource "aws_instance" "validator_testnet_vpn" {
                 echo 'table nat {
                   chain postrouting {
                     type nat hook postrouting priority 0;
-                    ip saddr 10.0.0.0/24 oif eth0 masquerade;
+                    ip saddr 10.0.0.0/24 oif ens5 masquerade;
                   }
                 }' > /root/rules.nft
 
@@ -180,7 +203,7 @@ resource "aws_instance" "validator_testnet_vpn" {
 
 
                 EOF
-                
+
   tags = {
     Name = "Validator testnet vpn-server"
   }
@@ -244,4 +267,9 @@ resource "aws_instance" "validator_testnet_workers" {
   tags = {
     Name = "Validator testnet worker server ${count.index}"
   }
+
+  # make sure VPN/NAT node is setup before worker nodes
+  depends_on = [
+    aws_instance.validator_testnet_vpn
+  ]
 }

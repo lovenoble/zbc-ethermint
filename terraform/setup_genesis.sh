@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CHAIN=evmos
+CHAIN=ethermint
 DENOM=aphoton
 
 CHAINID="$CHAIN"_9000-1
@@ -8,12 +8,15 @@ MONIKER="orchestrator"
 
 # Orchestrator account
 KEY="orchestrator"
-MNEMONIC="stumble tilt business detect father ticket major inner awake jeans name vibrant tribe pause crunch sad wine muscle hidden pumpkin inject segment rocket silver"
+if [ -z "$MNEMONIC" ];
+then
+	echo \$MNEMONIC is undefined
+	exit 1
+fi
 
 LOCALNET_DIR=$(pwd)/localnet
 BUILD_DIR=$LOCALNET_DIR/build
 STARTING_IP=10.0.0.10
-DOCKER_IMAGE=ghcr.io/zama-ai/ethermint-node:latest
 
 # TODO uncomment this when issue https://github.com/evmos/ethermint/issues/1579 is solved
 DATA_DIR=$BUILD_DIR/node4/ethermintd
@@ -21,7 +24,7 @@ LOCALNET_DIR_DOCKER=/localnet
 BUILD_DIR_DOCKER=$LOCALNET_DIR_DOCKER/build
 DATA_DIR_DOCKER=$BUILD_DIR_DOCKER/node4/ethermintd
 FHEVM_KEYS_DOCKER=$LOCALNET_DIR_DOCKER/fhevm-keys
-CHAIND="docker run -e FHEVM_GO_KEYS_DIR=$FHEVM_KEYS_DOCKER -v $LOCALNET_DIR:$LOCALNET_DIR_DOCKER -i --rm $DOCKER_IMAGE /usr/bin/ethermintd"
+CHAIND="docker run -e FHEVM_GO_KEYS_DIR=$FHEVM_KEYS_DOCKER -v $LOCALNET_DIR:$LOCALNET_DIR_DOCKER -i --rm ghcr.io/zama-ai/ethermint-node:v0.2 /usr/bin/ethermintd"
 
 CONF_DIR=$DATA_DIR/config
 GENESIS=$CONF_DIR/genesis.json
@@ -29,6 +32,12 @@ TEMP_GENESIS=$CONF_DIR/tmp_genesis.json
 CONFIG=$CONF_DIR/config.toml
 # TODO: workout gas supply for genesis
 NODE_COUNT=4
+
+if [ -z "$DOCKER_IMAGE" ];
+then
+	echo "Environment variable \$DOCKER_IMAGE is undefined"
+	exit 1
+fi
 
 if [ -d "$BUILD_DIR" ];
 then
@@ -99,10 +108,11 @@ for i in $(ls $BUILD_DIR | grep 'node');do
     [ $? -eq 0 ] && echo "$i: genesis updated successfully" || echo "$i: genesis update failed"
     cp $CONF_DIR/client.toml $BUILD_DIR/$i/ethermintd/config/client.toml
     cp multi-node-start.sh $BUILD_DIR/$i/ethermintd/
-    # no need to rsync twice
-    cp docker-compose.yml $BUILD_DIR/$i/ethermintd/
-    # dont include secret key
-    rsync -avz --exclude=sks $LOCALNET_DIR/fhevm-keys $BUILD_DIR/$i/ethermintd/
+    # in future good faucet will be installed in the image
+    # but image is not released yet at the time of this writing
+    cp ../faucet.py $BUILD_DIR/$i/ethermintd/
+    # no need to rsync twice, set the used docker image
+    sed "s|DOCKER_IMAGE|$DOCKER_IMAGE|g" docker-compose.yml > $BUILD_DIR/$i/ethermintd/docker-compose.yml
 done
 
 echo "copy config.toml to get the seeds"

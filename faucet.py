@@ -13,12 +13,15 @@ FAUCET_WALLET_NAME = os.getenv('FAUCET_WALLET_NAME', default='orchestrator')
 FAUCET_AMOUNT = os.getenv('FAUCET_AMOUNT', default='1000000000000000000')
 DENOM = os.getenv('DENOM', default='aphoton')
 
+IS_ZAMA_TESTNET = os.getenv('ZAMA_TESTNET')
 
 def get_faucet_address():
+    keys_list_command = ['ethermintd', '--output=json', 'keys', 'list']
+    if IS_ZAMA_TESTNET:
+        keys_list_command.append('--keyring-backend=test')
 
     # Run the ethermintd command and capture the output
-    output_bytes = subprocess.check_output(
-        ['ethermintd', '--output=json', 'keys', 'list'])
+    output_bytes = subprocess.check_output(keys_list_command)
 
     # Convert bytes to string
     output_str = output_bytes.decode('utf-8')
@@ -54,5 +57,8 @@ if faucet_address is None:
     os.exit(1)
 
 dst_bech_addr = get_bech32_addr(FAUCET_DEST_ADDRESS)
+maybe_keyring_backend = ''
+if IS_ZAMA_TESTNET:
+    maybe_keyring_backend = '--keyring-backend=test'
 os.system(
-    f'ethermintd --output=json tx bank send {faucet_address} {dst_bech_addr} {FAUCET_AMOUNT}{DENOM} --from {FAUCET_WALLET_NAME} --gas-prices 200000000{DENOM} -y')
+    f'ethermintd --output=json tx bank send {maybe_keyring_backend} {faucet_address} {dst_bech_addr} {FAUCET_AMOUNT}{DENOM} --from {FAUCET_WALLET_NAME} --gas-prices 2000000000{DENOM} -y')
