@@ -1,7 +1,4 @@
 
-EVMOSD=/Users/deividas/projects/evmos-orig/build
-NODE_COUNT=5
-
 .PHONY: check_ssh_key
 check_ssh_key:
 	ssh-add -L | grep 'ssh-'
