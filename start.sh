@@ -1,8 +1,6 @@
 #!/bin/bash
 
 TRACE="--trace"
-# TRACE=""
-HOME_ETHERMINTD="$HOME/.ethermintd"
 ETHERMINTD="ethermintd"
 
 LOGLEVEL="info"

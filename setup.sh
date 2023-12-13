@@ -4,13 +4,8 @@ CHAINID="ethermint_9000-1"
 MONIKER="localtestnet"
 KEYRING="test"
 KEYALGO="eth_secp256k1"
-LOGLEVEL="info"
-# trace evm
-TRACE="--trace"
-# TRACE=""
 HOME_ETHERMINTD="$HOME/.ethermintd"
 ETHERMINTD="ethermintd"
-
 
 mkdir -p $HOME_ETHERMINTD/config
 
@@ -147,10 +142,8 @@ if [[ $1 == "pending" ]]; then
 fi
 
 # Create Zama-specific directories and files.
-mkdir -p $HOME_ETHERMINTD/zama/keys/users-fhe-keys
 mkdir -p $HOME_ETHERMINTD/zama/keys/network-fhe-keys
 mkdir -p $HOME_ETHERMINTD/zama/config
-
 
 touch $HOME/privkey
 $ETHERMINTD keys unsafe-export-eth-key $KEY1 --keyring-backend test > $HOME/privkey
