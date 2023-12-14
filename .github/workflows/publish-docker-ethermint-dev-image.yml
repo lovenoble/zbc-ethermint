@@ -1,1 +1,11 @@
 name: Publish developer image
+
+on:
+  workflow_dispatch:
+    inputs:
+      ethermint_node_tag:
+        description: 'Ethermint node tag (default: latest)'
+        default: "latest"
+        type: string
+        required: false
+     
