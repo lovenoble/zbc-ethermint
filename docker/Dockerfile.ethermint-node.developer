@@ -10,8 +10,7 @@ WORKDIR /config
 
 ADD ./scripts/prepare_fhe_keys.sh .
 ADD ./scripts/run_developer_image.sh .
-ADD  ./faucet.py /usr/local/bin/faucet
-# ADD --chmod=755 ./faucet.py /usr/local/bin/faucet
+ADD --chmod=755 ./faucet.py /usr/local/bin/faucet
 
 COPY --from=tfhe-cli /usr/local/bin/fhevm-tfhe-cli /usr/local/bin
 
