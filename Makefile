@@ -627,7 +627,7 @@ update-go-mod:
 
 build-local:   go.sum $(BUILDDIR)/
 	$(info build-local for docker build)
-	go build $(BUILD_FLAGS) -o build $(BUILD_ARGS) ./...
+	CGO_CFLAGS=-"O -D__BLST_PORTABLE__" go build $(BUILD_FLAGS) -o build $(BUILD_ARGS) ./...
 	@echo 'ethermintd binary is ready in build folder'
 
 build-local-docker:
