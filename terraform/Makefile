@@ -1,6 +1,6 @@
 
 MNEMONIC ?= stumble tilt business detect father ticket major inner awake jeans name vibrant tribe pause crunch sad wine muscle hidden pumpkin inject segment rocket silver
-DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2-test
+DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2.1-no-kms
 PUBLIC_NODE_IP_EXPR = jq -r '.resources[] | select(.type=="aws_instance") | select(.instances[].attributes.public_ip != "") | .instances[].attributes.public_ip' terraform.tfstate
 
 .PHONY: check_ssh_key
