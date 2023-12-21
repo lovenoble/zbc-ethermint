@@ -23,7 +23,7 @@ defaults:
 
 jobs:
   docker:
-    runs-on: large_ubuntu_16
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
