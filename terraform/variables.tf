@@ -23,7 +23,8 @@ variable "worker_count" {
 
 variable "worker_type" {
   type = string
-  default = "t2.micro"
+  # compute optimized for fhe operations
+  default = "c5n.4xlarge"
 }
 
 variable "worker_disk_size_gb" {
