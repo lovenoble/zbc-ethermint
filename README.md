@@ -48,6 +48,18 @@ STATUS:
 For now Ethermint is using the last version of go-ethereum (v1.13.5).
 Fhevm-go is integrated. 
 
+## How to run using docker images from registry
+
+Ensure LOCAL_BUILD is set to fale in .env.
+
+
+
+
+```bash
+make init-ethermint-node
+
+```
+
 
 
 ## How to run using docker locally

@@ -48,7 +48,7 @@ FHEVM_TFHE_CLI_VERSION ?= v0.2.1
 FHEVM_SOLIDITY_REPO ?= fhevm
 FHEVM_SOLIDITY_PATH ?= $(WORKDIR)/$(FHEVM_SOLIDITY_REPO)
 FHEVM_SOLIDITY_PATH_EXISTS := $(shell test -d $(FHEVM_SOLIDITY_PATH)/.git && echo "true" || echo "false")
-FHEVM_SOLIDITY_VERSION ?= 63fa1e66c7e6ed8055be1f39802f9cce502326ed
+FHEVM_SOLIDITY_VERSION ?= d7e0e96468356f910678151a54cbe0784f2a7ff2
 
 export GO111MODULE = on
 
@@ -733,3 +733,12 @@ clean: clean-node-storage
 	rm -rf $(BUILDDIR)/
 	rm -rf $(WORKDIR)/ 
 	rm -f $(UPDATE_GO_MOD)
+
+
+print-info:
+	@echo 'GO_ETHEREUM_TAG: $(GO_ETHEREUM_VERSION) ---extracted from go.mod'
+	@echo 'FHEVM_GO_TAG: $(FHEVM_GO_VERSION) ---extracted from go.mod'
+	@echo 'FHEVM_TFHE_CLI_VERSION: $(FHEVM_TFHE_CLI_VERSION) ---extracted from Makefile'
+	@echo 'FHEVM_SOLIDITY_VERSION: $(FHEVM_SOLIDITY_VERSION) ---extracted from Makefile'
+	@bash scripts/get_repository_info.sh zbc-ethermint ${CURDIR}
+	@bash scripts/get_repository_info.sh fhevm $(FHEVM_SOLIDITY_PATH)
