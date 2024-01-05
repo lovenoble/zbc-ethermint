@@ -22,7 +22,6 @@ for i in $(ls $BUILD_DIR | grep 'node');do
         cd /home/ubuntu; \
         mkdir /home/ubuntu/ethermintd/fhevm-keys; \
         stat /home/ubuntu/ethermintd/fhevm-keys/sks || curl 10.0.0.100/sks > /home/ubuntu/ethermintd/fhevm-keys/sks; \
-        stat /home/ubuntu/ethermintd/fhevm-keys/cks || curl 10.0.0.100/cks > /home/ubuntu/ethermintd/fhevm-keys/cks; \
         stat /home/ubuntu/ethermintd/fhevm-keys/pks || curl 10.0.0.100/pks > /home/ubuntu/ethermintd/fhevm-keys/pks; \
         sudo docker compose pull" &
     TARGET_NODE_COUNT=$(( TARGET_NODE_COUNT + 1 ))

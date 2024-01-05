@@ -1,6 +1,6 @@
 
 MNEMONIC ?= stumble tilt business detect father ticket major inner awake jeans name vibrant tribe pause crunch sad wine muscle hidden pumpkin inject segment rocket silver
-DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2.1-no-kms
+DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2.1
 PUBLIC_NODE_IP_EXPR = jq -r '.resources[] | select(.type=="aws_instance") | select(.instances[].attributes.public_ip != "") | .instances[].attributes.public_ip' terraform.tfstate
 
 .PHONY: check_ssh_key
@@ -50,6 +50,12 @@ start_validators: check_env
 	MNEMONIC="$(MNEMONIC)" \
 	 ./start_validators.sh
 
+.PHONY: start_kms
+start_kms: check_env
+	DOCKER_PULL_GITHUB_TOKEN=$(DOCKER_PULL_GITHUB_TOKEN) \
+	DOCKER_PULL_GITHUB_USER=$(DOCKER_PULL_GITHUB_USER) \
+	 ./start_kms.sh
+
 .PHONY: sshuttle
 sshuttle: check_ssh_key
 	-ps aux | grep -i python | grep sshuttle | awk '{print $$2}' | sudo xargs kill
@@ -66,6 +72,7 @@ full_setup: check_env generate_genesis
 	$(MAKE) sshuttle
 	$(MAKE) upload_keys
 	$(MAKE) upload_genesis
+	$(MAKE) start_kms
 	$(MAKE) start_validators
 
 teardown:

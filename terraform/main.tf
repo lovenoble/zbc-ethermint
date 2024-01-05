@@ -209,6 +209,68 @@ resource "aws_instance" "validator_testnet_vpn" {
   }
 }
 
+resource "aws_instance" "validator_testnet_kms" {
+  ami = "${var.ami}"
+  instance_type = "${var.worker_type}"
+  associate_public_ip_address = false
+  private_ip = "10.0.0.50"
+  subnet_id = aws_subnet.internal_subnet.id
+
+  key_name = aws_key_pair.machine_key.id
+
+  user_data = <<-EOF
+                #!/bin/bash
+                apt-get update -y
+                apt-get upgrade -y
+
+                # add route to the internet via our vpn nat instance
+                echo '[Unit]
+                Description=Set up NAT instance for internal nodes
+
+                [Service]
+                Type=oneshot
+                ExecStart=/usr/sbin/ip route add 0.0.0.0/0 via 10.0.0.100
+                RemainAfterExit=yes
+
+                [Install]
+                WantedBy=multi-user.target' > /etc/systemd/system/nat-route.service
+
+                systemctl daemon-reload
+                systemctl enable nat-route.service
+                systemctl restart nat-route.service
+
+                apt-get update -y
+                apt-get upgrade -y
+
+                apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                apt-get update -y
+
+                apt-get install -y docker-ce
+
+                usermod -aG docker ubuntu
+
+                EOF
+
+  security_groups = [aws_security_group.worker_sg.id]
+
+  root_block_device {
+    volume_size = "${var.worker_disk_size_gb}"
+  }
+
+  # forces recreation every time if not here for some reason
+  lifecycle {
+    ignore_changes = [
+      security_groups
+    ]
+  }
+
+  tags = {
+    Name = "Validator testnet KMS server"
+  }
+}
+
 resource "aws_instance" "validator_testnet_workers" {
   count = var.worker_count
   ami = "${var.ami}"
