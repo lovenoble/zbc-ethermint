@@ -15,10 +15,16 @@ variable "ami" {
   default = "ami-0a93c302c38b5ec8e"
 }
 
-variable "worker_count" {
-  description = "Worker nodes to be spawned to run validator nodes on. Supports up to 90 nodes"
+variable "validator_count" {
+  description = "Worker nodes to be spawned to run validator nodes on"
   type = number
   default = 5
+}
+
+variable "full_node_count" {
+  description = "Full node count"
+  type = number
+  default = 3
 }
 
 variable "worker_type" {

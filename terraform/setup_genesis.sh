@@ -31,7 +31,10 @@ GENESIS=$CONF_DIR/genesis.json
 TEMP_GENESIS=$CONF_DIR/tmp_genesis.json
 CONFIG=$CONF_DIR/config.toml
 # TODO: workout gas supply for genesis
-NODE_COUNT=4
+VALIDATOR_COUNT=4
+FULL_NODE_COUNT=3
+FULL_NODE_FIRST_IDX=$(( VALIDATOR_COUNT + 1 ))
+FULL_NODE_LAST_IDX=$(( FULL_NODE_FIRST_IDX + FULL_NODE_COUNT ))
 
 if [ -z "$DOCKER_IMAGE" ];
 then
@@ -48,7 +51,7 @@ fi
 # create necessary directory for orchestrator node
 mkdir -p "$DATA_DIR"
 
-$CHAIND testnet init-files --v $NODE_COUNT -o $BUILD_DIR_DOCKER --keyring-backend=test --starting-ip-address "$STARTING_IP" --chain-id "$CHAINID"
+$CHAIND testnet init-files --v $VALIDATOR_COUNT -o $BUILD_DIR_DOCKER --keyring-backend=test --starting-ip-address "$STARTING_IP" --chain-id "$CHAINID"
 
 echo "Create and add Orchestrator keys"
 echo "$MNEMONIC" | $CHAIND keys add "$KEY" --home "$DATA_DIR_DOCKER" --no-backup --chain-id "$CHAINID" --keyring-backend test --recover
@@ -90,11 +93,9 @@ do
 done
 
 # add gentx to gentxs dir
-echo cp $CONF_DIR/gentx/*.json $BUILD_DIR/gentxs/node4.json
 cp $CONF_DIR/gentx/*.json $BUILD_DIR/gentxs/node4.json
 
 echo "- Collect genesis tx"
-echo $CHAIND collect-gentxs --gentx-dir $BUILD_DIR_DOCKER/gentxs --home $DATA_DIR_DOCKER
 $CHAIND collect-gentxs --gentx-dir $BUILD_DIR_DOCKER/gentxs --home $DATA_DIR_DOCKER
 
 echo "- Run validate-genesis to ensure everything worked and that the genesis file is setup correctly"
@@ -125,3 +126,15 @@ echo "copy app.toml to have same config on all nodes"
 # TODO uncomment this when issue https://github.com/evmos/ethermint/issues/1579 is solved
 # cp $BUILD_DIR/node0/$CHAIND/config/config.toml $CONF_DIR/app.toml
 cp $BUILD_DIR/node0/ethermintd/config/app.toml $CONF_DIR/app.toml
+
+# create full nodes without validator private keys
+for i in $(seq $FULL_NODE_FIRST_IDX $FULL_NODE_LAST_IDX); do
+	TARGET_DIR=$BUILD_DIR/node$i
+	echo $TARGET_DIR
+	cp -r $BUILD_DIR/node0 $TARGET_DIR
+	rm $BUILD_DIR/node$i/ethermintd/key_seed.json
+	rm $BUILD_DIR/node$i/ethermintd/config/node_key.json
+	rm $BUILD_DIR/node$i/ethermintd/config/priv_validator_key.json
+	rm $BUILD_DIR/node$i/ethermintd/data/priv_validator_state.json
+	rm -rf $BUILD_DIR/node$i/ethermintd/keyring-test
+done

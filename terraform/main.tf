@@ -272,7 +272,7 @@ resource "aws_instance" "validator_testnet_kms" {
 }
 
 resource "aws_instance" "validator_testnet_workers" {
-  count = var.worker_count
+  count = var.validator_count + var.full_node_count
   ami = "${var.ami}"
   instance_type = "${var.worker_type}"
   associate_public_ip_address = false
