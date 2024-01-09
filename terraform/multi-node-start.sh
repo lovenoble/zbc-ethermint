@@ -31,20 +31,15 @@ sed -i.bak 's/max_subscriptions_per_client = 5/max_subscriptions_per_client = 60
 sed -i.bak 's/indexer = "null"/indexer = "kv"/g' "$CONFIG"
 sed -i.bak 's/namespace = "tendermint"/namespace = "cometbft"/g' "$CONFIG"
 
-# pruning settings
-# if pruning is defined
-if [[ -z "${pruning}" ]]; then
-    pruning="--pruning=nothing"
-else
-    pruning=""
-    sed -i 's/pruning = "default"/pruning = "custom"/g' "$APP_CONFIG"
-    sed -i 's/pruning-keep-recent = "0"/pruning-keep-recent = "5"/g' "$APP_CONFIG"
-    sed -i 's/pruning-interval = "0"/pruning-interval = "10"/g' "$APP_CONFIG"
+if [ ! -d /root/.ethermintd/keyring-test ]; then
+    # this is full archival node in the testnet
+    sed -i 's/pruning = "default"/pruning = "nothing"/g' "$APP_CONFIG"
+    ARCHIVAL_NODE_ARGS="--json-rpc.api=eth,net,web3,debug,txpool --pruning=nothing"
 fi
 
 echo "running $CHAIN with extra flags $EXTRA_FLAGS"
 echo "starting $CHAIN node in background ..."
-echo "$CHAIND start "$pruning" --rpc.unsafe --keyring-backend test "$EXTRA_FLAGS" >"$DATA_DIR"/node.log"
+echo "$CHAIND start $ARCHIVAL_NODE_ARGS --rpc.unsafe --keyring-backend test "$EXTRA_FLAGS" >"$DATA_DIR"/node.log"
 $CHAIND start --rpc.unsafe \
---json-rpc.enable true --api.enable \
+--json-rpc.enable true --api.enable $ARCHIVAL_NODE_ARGS \
 --keyring-backend test --chain-id $CHAIN_ID $EXTRA_FLAGS

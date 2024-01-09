@@ -375,6 +375,82 @@ resource "aws_instance" "validator_testnet_workers" {
   ]
 }
 
+resource "aws_instance" "block_explorer" {
+  ami = "${var.ami}"
+  instance_type = "c5a.4xlarge"
+  associate_public_ip_address = false
+  private_ip = "10.0.0.70"
+  subnet_id = aws_subnet.internal_subnet.id
+
+  key_name = aws_key_pair.machine_key.id
+
+  user_data = <<-EOF
+                #!/bin/bash
+                # add route to the internet via our vpn nat instance
+                echo '[Unit]
+                Description=Set up NAT instance for internal nodes
+
+                [Service]
+                Type=oneshot
+                ExecStart=/usr/sbin/ip route add 0.0.0.0/0 via 10.0.0.100
+                RemainAfterExit=yes
+
+                [Install]
+                WantedBy=multi-user.target' > /etc/systemd/system/nat-route.service
+
+                systemctl daemon-reload
+                systemctl enable nat-route.service
+                systemctl restart nat-route.service
+
+                apt-get update -y
+                apt-get upgrade -y
+
+                apt-get install -y apt-transport-https ca-certificates curl software-properties-common unzip
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                apt-get update -y
+
+                apt-get install -y docker-ce postgresql-client
+
+                usermod -aG docker ubuntu
+
+                cd /home/ubuntu
+                wget https://github.com/blockscout/blockscout/archive/refs/tags/v5.3.3-beta.zip
+                unzip v5.3.3-beta.zip
+                cd /home/ubuntu/blockscout-5.3.3-beta/docker-compose
+
+                sed -i 's|ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_HTTP_URL: http://10.0.0.17:8545/|g' docker-compose.yml
+                sed -i 's|ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_TRACE_URL: http://10.0.0.17:8545/|g' docker-compose.yml
+                sed -i 's|ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/|ETHEREUM_JSONRPC_WS_URL: ws://10.0.0.17:8546/|g' docker-compose.yml
+
+                while ! docker ps; do sleep 1; done
+                docker compose up -d
+
+                EOF
+
+  security_groups = [aws_security_group.worker_sg.id]
+
+  root_block_device {
+    volume_size = "512"
+  }
+
+  # forces recreation every time if not here for some reason
+  lifecycle {
+    ignore_changes = [
+      security_groups
+    ]
+  }
+
+  tags = {
+    Name = "Validator testnet block explorer"
+  }
+
+  # make sure VPN/NAT node is setup before worker nodes
+  depends_on = [
+    aws_instance.validator_testnet_vpn
+  ]
+}
+
 resource "aws_lb" "rpc_alb" {
   name               = "full-node-rpc-elb"
   internal           = false
