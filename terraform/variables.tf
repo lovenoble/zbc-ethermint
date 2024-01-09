@@ -8,6 +8,11 @@ variable "az" {
   default = "eu-west-2a"
 }
 
+variable "elb_extra_az" {
+  type = string
+  default = "eu-west-2b"
+}
+
 variable "ami" {
   type = string
   # Ubuntu Jammy Jellyfish	22.04 LTS at region eu-west-2
@@ -46,6 +51,11 @@ variable "cidr_vpc" {
 variable "cidr_subnet" {
   type = string
   default = "10.0.0.0/24"
+}
+
+variable "elb_extra_subnet" {
+  type = string
+  default = "10.0.1.0/24"
 }
 
 variable "ssh_public_key" {

@@ -38,6 +38,45 @@ resource "aws_subnet" "internal_subnet" {
   availability_zone = "${var.az}"
 }
 
+resource "aws_subnet" "elb_extra_subnet" {
+  cidr_block = "${var.elb_extra_subnet}"
+  vpc_id = aws_vpc.validator_testnet_vpc.id
+  availability_zone = "${var.elb_extra_az}"
+}
+
+resource "aws_security_group" "alb_sg" {
+  name = "alb_sg"
+  description = "Allow HTTP/HTTPS traffic to elb"
+  vpc_id = aws_vpc.validator_testnet_vpc.id
+}
+
+resource "aws_security_group_rule" "alb_sg_http" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.alb_sg.id
+}
+
+resource "aws_security_group_rule" "alb_sg_https" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.alb_sg.id
+}
+
+resource "aws_security_group_rule" "alb_sg_egress" {
+  type              = "egress"
+  from_port         = 8545
+  to_port           = 8545
+  protocol          = "tcp"
+  cidr_blocks       = ["${var.cidr_subnet}"]
+  security_group_id = aws_security_group.alb_sg.id
+}
+
 # Create a Security Group for the worker nodes to allow communication between them
 resource "aws_security_group" "worker_sg" {
   name = "worker_sg"
@@ -334,4 +373,55 @@ resource "aws_instance" "validator_testnet_workers" {
   depends_on = [
     aws_instance.validator_testnet_vpn
   ]
+}
+
+resource "aws_lb" "rpc_alb" {
+  name               = "full-node-rpc-elb"
+  internal           = false
+  load_balancer_type = "application"
+
+  subnets = [aws_subnet.internal_subnet.id, aws_subnet.elb_extra_subnet.id]
+  security_groups = [aws_security_group.alb_sg.id]
+
+  tags = {
+    Name = "Full Nodes RPC elb"
+  }
+}
+
+resource "aws_lb_listener" "rpc_alb_http" {
+  load_balancer_arn = aws_lb.rpc_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.rpc_alb_tg.arn
+  }
+}
+
+resource "aws_lb_target_group" "rpc_alb_tg" {
+  vpc_id      = aws_vpc.validator_testnet_vpc.id
+
+  name        = "rpc-lb-tg"
+  target_type = "instance"
+  port        = 8545
+  protocol    = "HTTP"
+  health_check {
+    protocol = "HTTP"
+    path = "/"
+    port = 8545
+    matcher = "200,405"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "rpc_alb_tg_attachment" {
+  for_each = toset(slice(
+    [for i in aws_instance.validator_testnet_workers.*.id : i],
+    var.validator_count,
+    var.validator_count + var.full_node_count
+  ))
+
+  target_group_arn = aws_lb_target_group.rpc_alb_tg.arn
+  target_id        = each.value
+  port             = 8545
 }
