@@ -491,13 +491,9 @@ resource "aws_lb_target_group" "rpc_alb_tg" {
 }
 
 resource "aws_lb_target_group_attachment" "rpc_alb_tg_attachment" {
-  for_each = toset(slice(
-    [for i in aws_instance.validator_testnet_workers.*.id : i],
-    var.validator_count,
-    var.validator_count + var.full_node_count
-  ))
+  count = var.full_node_count
 
   target_group_arn = aws_lb_target_group.rpc_alb_tg.arn
-  target_id        = each.value
+  target_id        = aws_instance.validator_testnet_workers[var.validator_count + count.index].id
   port             = 8545
 }
