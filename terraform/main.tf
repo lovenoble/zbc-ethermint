@@ -68,10 +68,19 @@ resource "aws_security_group_rule" "alb_sg_https" {
   security_group_id = aws_security_group.alb_sg.id
 }
 
-resource "aws_security_group_rule" "alb_sg_egress" {
+resource "aws_security_group_rule" "alb_sg_egress_rpc" {
   type              = "egress"
   from_port         = 8545
   to_port           = 8545
+  protocol          = "tcp"
+  cidr_blocks       = ["${var.cidr_subnet}"]
+  security_group_id = aws_security_group.alb_sg.id
+}
+
+resource "aws_security_group_rule" "alb_sg_egress_block_explorer" {
+  type              = "egress"
+  from_port         = 80
+  to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = ["${var.cidr_subnet}"]
   security_group_id = aws_security_group.alb_sg.id
@@ -496,4 +505,49 @@ resource "aws_lb_target_group_attachment" "rpc_alb_tg_attachment" {
   target_group_arn = aws_lb_target_group.rpc_alb_tg.arn
   target_id        = aws_instance.validator_testnet_workers[var.validator_count + count.index].id
   port             = 8545
+}
+
+resource "aws_lb" "blockscout_alb" {
+  name               = "blockscout-elb"
+  internal           = false
+  load_balancer_type = "application"
+
+  subnets = [aws_subnet.internal_subnet.id, aws_subnet.elb_extra_subnet.id]
+  security_groups = [aws_security_group.alb_sg.id]
+
+  tags = {
+    Name = "Blockscout load balancer"
+  }
+}
+
+resource "aws_lb_listener" "rpc_blockscout_http" {
+  load_balancer_arn = aws_lb.blockscout_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.blockscout_alb_tg.arn
+  }
+}
+
+resource "aws_lb_target_group" "blockscout_alb_tg" {
+  vpc_id      = aws_vpc.validator_testnet_vpc.id
+
+  name        = "blockscout-lb-tg"
+  target_type = "instance"
+  port        = 80
+  protocol    = "HTTP"
+  health_check {
+    protocol = "HTTP"
+    path = "/"
+    port = 80
+    matcher = "200"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "blockscout_alb_tg_attachment" {
+  target_group_arn = aws_lb_target_group.blockscout_alb_tg.arn
+  target_id        = aws_instance.block_explorer.id
+  port             = 80
 }
