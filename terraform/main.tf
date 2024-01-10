@@ -428,9 +428,15 @@ resource "aws_instance" "block_explorer" {
                 unzip v5.3.3-beta.zip
                 cd /home/ubuntu/blockscout-5.3.3-beta/docker-compose
 
+                sed -i 's|Awesome chain|${var.chain_name}|g' envs/common-frontend.env
+                sed -i 's|Awesome chain|${var.chain_name}|g' envs/common-blockscout.env
                 sed -i 's|ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_HTTP_URL: http://10.0.0.17:8545/|g' docker-compose.yml
                 sed -i 's|ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_TRACE_URL: http://10.0.0.17:8545/|g' docker-compose.yml
                 sed -i 's|ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/|ETHEREUM_JSONRPC_WS_URL: ws://10.0.0.17:8546/|g' docker-compose.yml
+                sed -i 's|NEXT_PUBLIC_API_HOST=localhost|NEXT_PUBLIC_API_HOST=${aws_lb.blockscout_alb.dns_name}|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_APP_HOST=localhost|NEXT_PUBLIC_APP_HOST=${aws_lb.blockscout_alb.dns_name}|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_STATS_API_HOST=http://localhost:8080|NEXT_PUBLIC_STATS_API_HOST=http://${aws_lb.blockscout_alb.dns_name}|g' envs/common-frontend.env
+                echo '${filebase64("${path.module}/block-explorer-nginx.conf")}' | base64 -d > proxy/default.conf.template
 
                 while ! docker ps; do sleep 1; done
                 docker compose up -d

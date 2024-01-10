@@ -1,3 +1,8 @@
+variable "chain_name" {
+  type = string
+  default = "FHE Ethermint testnet"
+}
+
 variable "region" {
   type = string
   default = "eu-west-2"
