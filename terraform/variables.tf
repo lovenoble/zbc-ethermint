@@ -3,6 +3,16 @@ variable "chain_name" {
   default = "FHE Ethermint testnet"
 }
 
+variable "explorer_dns_name" {
+  type = string
+  default = "explorer.fhe-ethermint.zama.ai"
+}
+
+variable "rpc_dns_name" {
+  type = string
+  default = "rpc.fhe-ethermint.zama.ai"
+}
+
 variable "region" {
   type = string
   default = "eu-west-2"

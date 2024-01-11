@@ -433,9 +433,12 @@ resource "aws_instance" "block_explorer" {
                 sed -i 's|ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_HTTP_URL: http://10.0.0.17:8545/|g' docker-compose.yml
                 sed -i 's|ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_TRACE_URL: http://10.0.0.17:8545/|g' docker-compose.yml
                 sed -i 's|ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/|ETHEREUM_JSONRPC_WS_URL: ws://10.0.0.17:8546/|g' docker-compose.yml
-                sed -i 's|NEXT_PUBLIC_API_HOST=localhost|NEXT_PUBLIC_API_HOST=${aws_lb.blockscout_alb.dns_name}|g' envs/common-frontend.env
-                sed -i 's|NEXT_PUBLIC_APP_HOST=localhost|NEXT_PUBLIC_APP_HOST=${aws_lb.blockscout_alb.dns_name}|g' envs/common-frontend.env
-                sed -i 's|NEXT_PUBLIC_STATS_API_HOST=http://localhost:8080|NEXT_PUBLIC_STATS_API_HOST=http://${aws_lb.blockscout_alb.dns_name}|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_API_HOST=localhost|NEXT_PUBLIC_API_HOST=${var.explorer_dns_name}|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_APP_HOST=localhost|NEXT_PUBLIC_APP_HOST=${var.explorer_dns_name}|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_STATS_API_HOST=http://localhost:8080|NEXT_PUBLIC_STATS_API_HOST=https://${var.explorer_dns_name}|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_API_PROTOCOL=http|NEXT_PUBLIC_API_PROTOCOL=https|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_APP_PROTOCOL=http|NEXT_PUBLIC_APP_PROTOCOL=https|g' envs/common-frontend.env
+                sed -i 's|NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL=ws|NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL=wss|g' envs/common-frontend.env
                 echo '${filebase64("${path.module}/block-explorer-nginx.conf")}' | base64 -d > proxy/default.conf.template
 
                 while ! docker ps; do sleep 1; done
@@ -485,6 +488,23 @@ resource "aws_lb_listener" "rpc_alb_http" {
   protocol          = "HTTP"
 
   default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "rpc_alb_https" {
+  load_balancer_arn = aws_lb.rpc_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate_validation.rpc_acm.certificate_arn
+
+  default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.rpc_alb_tg.arn
   }
@@ -532,6 +552,23 @@ resource "aws_lb_listener" "rpc_blockscout_http" {
   protocol          = "HTTP"
 
   default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "rpc_blockscout_https" {
+  load_balancer_arn = aws_lb.blockscout_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate_validation.explorer_acm.certificate_arn
+
+  default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.blockscout_alb_tg.arn
   }
@@ -556,4 +593,87 @@ resource "aws_lb_target_group_attachment" "blockscout_alb_tg_attachment" {
   target_group_arn = aws_lb_target_group.blockscout_alb_tg.arn
   target_id        = aws_instance.block_explorer.id
   port             = 80
+}
+
+# Certificates for explorer + rpc
+data "aws_route53_zone" "root_zone" {
+  name         = "zama.ai"
+  private_zone = false
+}
+
+# block explorer certificates + DNS
+resource "aws_acm_certificate" "explorer_acm" {
+  domain_name       = var.explorer_dns_name
+  validation_method = "DNS"
+}
+
+resource "aws_route53_record" "explorer_dns_verification" {
+  for_each = {
+    for dvo in aws_acm_certificate.explorer_acm.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.root_zone.zone_id
+}
+
+resource "aws_route53_record" "explorer_dns_cname" {
+  name            = var.explorer_dns_name
+  records         = [aws_lb.blockscout_alb.dns_name]
+  type            = "CNAME"
+
+  allow_overwrite = true
+  ttl             = 60
+  zone_id         = data.aws_route53_zone.root_zone.zone_id
+}
+
+resource "aws_acm_certificate_validation" "explorer_acm" {
+  certificate_arn         = aws_acm_certificate.explorer_acm.arn
+  validation_record_fqdns = [for record in aws_route53_record.explorer_dns_verification : record.fqdn]
+}
+
+
+# RPC certificates + DNS
+resource "aws_acm_certificate" "rpc_acm" {
+  domain_name       = var.rpc_dns_name
+  validation_method = "DNS"
+}
+
+resource "aws_route53_record" "rpc_dns_verification" {
+  for_each = {
+    for dvo in aws_acm_certificate.rpc_acm.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.root_zone.zone_id
+}
+
+resource "aws_route53_record" "rpc_dns_cname" {
+  name            = var.rpc_dns_name
+  records         = [aws_lb.rpc_alb.dns_name]
+  type            = "CNAME"
+
+  allow_overwrite = true
+  ttl             = 60
+  zone_id         = data.aws_route53_zone.root_zone.zone_id
+}
+
+resource "aws_acm_certificate_validation" "rpc_acm" {
+  certificate_arn         = aws_acm_certificate.rpc_acm.arn
+  validation_record_fqdns = [for record in aws_route53_record.rpc_dns_verification : record.fqdn]
 }
