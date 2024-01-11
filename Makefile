@@ -11,7 +11,7 @@ LEDGER_ENABLED ?= true
 BINDIR ?= $(GOPATH)/bin
 ETHERMINT_BINARY = ethermintd
 ETHERMINT_DIR = ethermint
-BUILDDIR ?= $(CURDIR)/buildLOCAL_BUILD
+BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
 HTTPS_GIT := https://github.com/ethermint/ethermint.git
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
@@ -36,19 +36,18 @@ UPDATE_GO_MOD = go.mod.updated
 FHEVM_GO_REPO := fhevm-go
 FHEVM_GO_VERSION :=  $(shell ./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)
 
-TFHE_RS_VERSION ?= 0.3.1
 
 
 # If false, fhevm-tfhe-cli is cloned, built (version is FHEVM_TFHE_CLI_VERSION)
 USE_DOCKER_FOR_FHE_KEYS ?= true
 FHEVM_TFHE_CLI_PATH ?= $(WORKDIR)/fhevm-tfhe-cli
 FHEVM_TFHE_CLI_PATH_EXISTS := $(shell test -d $(FHEVM_TFHE_CLI_PATH)/.git && echo "true" || echo "false")
-FHEVM_TFHE_CLI_VERSION ?= v0.2.1
+FHEVM_TFHE_CLI_VERSION ?= v0.2.2
 
 FHEVM_SOLIDITY_REPO ?= fhevm
 FHEVM_SOLIDITY_PATH ?= $(WORKDIR)/$(FHEVM_SOLIDITY_REPO)
 FHEVM_SOLIDITY_PATH_EXISTS := $(shell test -d $(FHEVM_SOLIDITY_PATH)/.git && echo "true" || echo "false")
-FHEVM_SOLIDITY_VERSION ?= d7e0e96468356f910678151a54cbe0784f2a7ff2
+FHEVM_SOLIDITY_VERSION ?= v0.3.0
 
 export GO111MODULE = on
 
@@ -618,9 +617,15 @@ endif
 
 check-all-test-repo: check-fhevm-solidity
 
+prepare-local-build:
+	@bash scripts/replace_go_mod.sh go.mod ".."
+	@echo 'go.mod has been updated'
+	@git diff go.mod
+
 update-go-mod:
 	@cp go.mod $(UPDATE_GO_MOD)
-	@bash scripts/replace_go_mod.sh $(UPDATE_GO_MOD)
+	@bash scripts/replace_go_mod.sh $(UPDATE_GO_MOD) "./work_dir"
+
 
 build-local:   go.sum $(BUILDDIR)/
 	$(info build-local for docker build)
@@ -663,15 +668,15 @@ init-ethermint-node-local:
 	$(MAKE) generate-fhe-keys
 
 init-ethermint-node-from-registry:
-	@docker compose -f docker-compose/docker-compose.validator.yml run validator bash /config/setup.sh
+	@docker compose -f docker-compose/docker-compose.single.validator.yml run validator bash /config/setup.sh
 	$(MAKE) change-running-node-owner
 	$(MAKE) generate-fhe-keys-registry
 
 generate-fhe-keys:
-	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node1/.ethermintd/zama/keys/network-fhe-keys
+	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node1/.ethermintd/zama/keys/network-fhe-keys $(PWD)/running_node/node1/.ethermintd/zama/keys/kms-fhe-keys
 
 generate-fhe-keys-registry:
-	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node2/.ethermintd/zama/keys/network-fhe-keys
+	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node2/.ethermintd/zama/keys/network-fhe-keys $(PWD)/running_node/node2/.ethermintd/zama/keys/kms-fhe-keys
 
 run-ethermint:
 ifeq ($(LOCAL_BUILD),true)
@@ -679,7 +684,7 @@ ifeq ($(LOCAL_BUILD),true)
 	@docker compose  -f docker-compose/docker-compose.local.yml -f docker-compose/docker-compose.local.override.yml  up --detach
 else
 	$(info LOCAL_BUILD is not set, run docker images from docker registry)
-	@docker compose  -f docker-compose/docker-compose.validator.yml -f docker-compose/docker-compose.validator.override.yml  up --detach
+	@docker compose  -f docker-compose/docker-compose.single.validator.yml -f docker-compose/docker-compose.single.validator.override.yml  up --detach
 endif
 	@echo 'sleep a little to let the docker start up'
 	sleep 10
@@ -690,7 +695,8 @@ ifeq ($(LOCAL_BUILD),true)
 	@docker compose  -f docker-compose/docker-compose.local.yml down
 else
 	$(info LOCAL_BUILD is not set, stop docker images from docker registry)
-	@docker compose  -f docker-compose/docker-compose.validator.yml down
+	@docker compose  -f docker-compose/docker-compose.single.validator.yml down
+
 endif
 
 TEST_FILE := run_tests.sh
@@ -742,3 +748,4 @@ print-info:
 	@echo 'FHEVM_SOLIDITY_VERSION: $(FHEVM_SOLIDITY_VERSION) ---extracted from Makefile'
 	@bash scripts/get_repository_info.sh zbc-ethermint ${CURDIR}
 	@bash scripts/get_repository_info.sh fhevm $(FHEVM_SOLIDITY_PATH)
+

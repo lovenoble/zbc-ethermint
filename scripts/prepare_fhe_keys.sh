@@ -81,4 +81,6 @@ cp $KEYS_FULL_PATH/$key $NETWORK_KEYS_PUBLIC_PATH/pks
 key="cks"
 echo "Copying $key to $NETWORK_KEYS_PRIVATE_PATH, please wait ..."
 cp $KEYS_FULL_PATH/$key $NETWORK_KEYS_PRIVATE_PATH/cks
+cp $KEYS_FULL_PATH/$key $NETWORK_KEYS_PRIVATE_PATH/cks.bin
+
 

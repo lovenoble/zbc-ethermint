@@ -1,18 +1,14 @@
 version: '3'
 
 services:
-  ethermintnodelocal:
-    image: ethermintnodelocal
-    container_name: ethermintnodelocal0
-    build:
-      context: ../
-      dockerfile: docker/Dockerfile.ethermint-node.local
+  validator:
+    image: ghcr.io/zama-ai/ethermint-node:v0.2.2
+    container_name: ethermintnode0
     ports:
       - "26656-26657:26656-26657"
       - "8545:8545"
     volumes:
-      - ../running_node/node1:/root:Z
-      - ../running_node/gentx:/root/gentx:Z
+      - ../running_node/node2:/root:Z
       - ../setup.sh:/config/setup.sh:Z
     security_opt:
       - no-new-privileges:true
@@ -24,7 +20,7 @@ services:
     image: ghcr.io/zama-ai/kms:v0.1.2
     container_name: zbc-kms
     volumes:
-      - ../running_node/node1/.ethermintd/zama/keys/kms-fhe-keys:/usr/src/kms-server/temp:Z
+      - ../running_node/node2/.ethermintd/zama/keys/kms-fhe-keys:/usr/src/kms-server/temp:Z
     ports:
       - "50051:50051"
     security_opt:

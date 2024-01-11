@@ -35,6 +35,51 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v0.2.0] - 2024-01-02
+
+Ethermint-node docker image: ghcr.io/zama-ai/ethermint-node:v0.2.0
+
+Ethermint-node developer docker image: ghcr.io/zama-ai/ethermint-dev-node:v0.2.0
+
+
+## Notes
+
+- Bump tfhe-rs version to v0.4.1
+- Bump fhevm-tfhe-cli version to v0.2.2
+- Three docker-compose exist:
+    - docker.compose.local.yml: used to build the ethermint node image and for the ci e2e test
+    - docker.compose.single.validator.yml: self-sufficient single validator testnet composed of two services:
+        1) the validator running docker image from registry
+        2) kms service to allow a self-sufficient single validator testnet
+    - docker.compose.validator.yml: only running a validator node, the KMS endpoint relies on ```KMS_ENDPOINT_ADDR``` env variable
+- Private key (cks) is/should be stored in the KMS (without Key Management System)
+- All tests from fhevm (solidity) are passing **except rand** (will be fixed soon)
+
+## Breaking changes
+
+- Use of kms for
+    - reencrypt: example of usage is for balanceOf
+    - decrypt: we still need them for governor e2e test and all the unit test of fhevm
+
+
+For build:
+
+|      Name       |    Type    |   version    |
+| :-------------: | :--------: | :----------: |
+| zbc-go-ethereum | repository | v0.1.2-alpha |
+|  zbc-ethermint  | repository |    v0.2.0    |
+|    fhevm-go     | repository | v0.1.2-alpha |
+|     tfhe-rs     | repository |    0.4.1     |
+|       kms       |   docker   |    v0.1.2    |
+
+
+For e2e test:
+
+|      Name      |    Type    |                 version                  |
+| :------------: | :--------: | :--------------------------------------: |
+| fhevm-solidity | repository | d7e0e96468356f910678151a54cbe0784f2a7ff2 |
+| fhevm-tfhe-cli | repository |                  v0.2.2                  |
+
 ## [v0.1.0] - 2023-12-21
 
 Ethermint-node docker image: ghcr.io/zama-ai/ethermint-node:v0.1.0
@@ -57,6 +102,8 @@ For build:
 | zbc-go-ethereum | repository | v0.1.1  |
 |  zbc-ethermint  | repository | v0.1.0  |
 |    fhevm-go     | repository | v0.1.1  |
+|    tfhe-rs      | repository | 0.3.1   |
+
 
 For e2e test:
 
