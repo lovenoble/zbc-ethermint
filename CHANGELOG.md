@@ -35,6 +35,37 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+
+## [v0.2.2] - 2024-10-02
+
+Ethermint-node docker image: ghcr.io/zama-ai/ethermint-node:v0.2.2
+
+Ethermint-node developer docker image: ghcr.io/zama-ai/ethermint-dev-node:v0.2.2
+
+## Notes
+
+- Fix random bit generation
+- Add tutorial to run debugger mode
+- Use native cmux from tfhe-rs which is very **efficient** and **cheap**
+
+For build:
+
+|      Name       |    Type    |   version    |
+| :-------------: | :--------: | :----------: |
+| zbc-go-ethereum | repository |    v0.1.5    |
+|  zbc-ethermint  | repository |    v0.2.2    |
+|    fhevm-go     | repository |    v0.1.5    |
+|     tfhe-rs     | repository |    0.4.1     |
+|       kms       |   docker   |    v0.1.2    |
+
+
+For e2e test:
+
+|      Name      |    Type    |  version  |
+| :------------: | :--------: |  :-----:  |
+| fhevm-solidity | repository |  v0.3.0   |
+| fhevm-tfhe-cli | repository |  v0.2.2   |
+
 ## [v0.2.0] - 2024-01-02
 
 Ethermint-node docker image: ghcr.io/zama-ai/ethermint-node:v0.2.0
