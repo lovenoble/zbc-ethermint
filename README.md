@@ -48,6 +48,69 @@ STATUS:
 For now Ethermint is using the last version of go-ethereum (v1.13.5).
 Fhevm-go is integrated. 
 
+## How to run using docker images from registry
+
+Ensure LOCAL_BUILD is set to fale in .env.
+
+
+
+
+```bash
+make init-ethermint-node
+
+```
+
+
+## Run the ethermint node in the debugger
+
+Follow this [tutorial](DEBUG.md)
+
+## How to build locally from source without docker
+
+Update dependency to go-ethereum and fhevm-go
+
+```bash
+diff --git a/go.mod b/go.mod
+index 015ed206..d9ab6632 100644
+--- a/go.mod
++++ b/go.mod
+@@ -221,8 +221,9 @@ require (
+ replace (
+        // use cosmos keyring
+        github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
+-       github.com/ethereum/go-ethereum v1.13.5 => github.com/zama-ai/zbc-go-ethereum v0.1.1-gamma-kms
++       github.com/ethereum/go-ethereum v1.13.5 => ../zbc-go-ethereum
+        // PLACEHOLDER_FHEVM_GO
++       github.com/zama-ai/fhevm-go v0.1.1-gamma-kms => ../fhevm-go
+```
+
+Update dependency to fhevm-go in zbc-go-ethereum:
+
+NOTE: this step seems to not be needed! The reason could be that go package manager choose the local one (precised in zbc-ethermint go.mod)
+if initially the point to the same version. (TO BE CONFIRMED)
+
+```bash
+make build-local
+```
+
+
+
+## How to run using docker images from registry
+
+Ensure LOCAL_BUILD is set to fale in .env.
+
+To initalize the node:
+
+```bash
+make init-ethermint-node
+```
+
+To run directly e2e test:
+
+```bash
+make e2e-test
+```
+
 
 
 ## How to run using docker locally
@@ -64,7 +127,7 @@ Init the node (configuration files)
 make init-ethermint-node-local
 ```
 
-THis will create every need files under __running_node/node1/.ethermintd__.
+THis will create every needed files under __running_node/node1/.ethermintd__.
 ```bash
 running_node/node1/.ethermintd/
 ├── config

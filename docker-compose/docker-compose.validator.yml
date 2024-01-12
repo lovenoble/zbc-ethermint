@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  validator:
+    image: ghcr.io/zama-ai/ethermint-node:v0.2.1
+    container_name: ethermintnode0
+    ports:
+      - "26656-26657:26656-26657"
+      - "8545:8545"
+    volumes:
+      - ../running_node/node2:/root:Z
+      - ../setup.sh:/config/setup.sh:Z
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      localnet:
+        ipv4_address: 192.167.10.2
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.167.10.0/16

@@ -1,0 +1,25 @@
+ARG TFHE_CLI_VERSION=v0.2.2
+ARG ETHERMINT_NODE_VERSION=v0.2.1
+ARG KMS_VERSION=v0.1.2
+FROM ghcr.io/zama-ai/kms:${KMS_VERSION} as zbc-kms
+FROM ghcr.io/zama-ai/fhevm-tfhe-cli:${TFHE_CLI_VERSION} as tfhe-cli
+FROM ghcr.io/zama-ai/ethermint-node:${ETHERMINT_NODE_VERSION}
+ENV FHEVM_GO_KEYS_DIR=/root/.ethermintd/zama/keys/network-fhe-keys
+ENV KMS_ENDPOINT_ADDR=localhost:50051
+
+RUN echo "TFHE_CLI_VERSION: $TFHE_CLI_VERSION"
+
+
+WORKDIR /config
+
+ADD ./scripts/prepare_fhe_keys.sh .
+ADD ./scripts/run_developer_image.sh .
+ADD --chmod=755 ./faucet.py /usr/local/bin/faucet
+
+COPY --from=tfhe-cli /usr/local/bin/fhevm-tfhe-cli /usr/local/bin
+COPY --from=zbc-kms /usr/local/cargo/bin/kms-server .
+
+
+EXPOSE 26656 26657 1317 9090 8545 8546 8001
+
+ENTRYPOINT ["./run_developer_image.sh"]

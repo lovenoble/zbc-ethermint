@@ -36,19 +36,18 @@ UPDATE_GO_MOD = go.mod.updated
 FHEVM_GO_REPO := fhevm-go
 FHEVM_GO_VERSION :=  $(shell ./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)
 
-TFHE_RS_VERSION ?= 0.3.1
 
 
 # If false, fhevm-tfhe-cli is cloned, built (version is FHEVM_TFHE_CLI_VERSION)
 USE_DOCKER_FOR_FHE_KEYS ?= true
 FHEVM_TFHE_CLI_PATH ?= $(WORKDIR)/fhevm-tfhe-cli
 FHEVM_TFHE_CLI_PATH_EXISTS := $(shell test -d $(FHEVM_TFHE_CLI_PATH)/.git && echo "true" || echo "false")
-FHEVM_TFHE_CLI_VERSION ?= v0.2.1
+FHEVM_TFHE_CLI_VERSION ?= v0.2.2
 
 FHEVM_SOLIDITY_REPO ?= fhevm
 FHEVM_SOLIDITY_PATH ?= $(WORKDIR)/$(FHEVM_SOLIDITY_REPO)
 FHEVM_SOLIDITY_PATH_EXISTS := $(shell test -d $(FHEVM_SOLIDITY_PATH)/.git && echo "true" || echo "false")
-FHEVM_SOLIDITY_VERSION ?= 63fa1e66c7e6ed8055be1f39802f9cce502326ed
+FHEVM_SOLIDITY_VERSION ?= v0.3.0
 
 export GO111MODULE = on
 
@@ -549,7 +548,6 @@ ifeq ($(LOCAL_BUILD),true)
 	@$(MAKE) build-local-docker
 else
 	$(info LOCAL_BUILD is not set, use docker registry for docker images)
-	@$(MAKE) build-from-registry
 endif
 
 clone-fhevm-solidity: $(WORKDIR)/
@@ -619,10 +617,14 @@ endif
 
 check-all-test-repo: check-fhevm-solidity
 
+prepare-local-build:
+	@bash scripts/replace_go_mod.sh go.mod ".."
+	@echo 'go.mod has been updated'
+	@git diff go.mod
+
 update-go-mod:
 	@cp go.mod $(UPDATE_GO_MOD)
-	@bash scripts/replace_go_mod.sh $(UPDATE_GO_MOD)
-
+	@bash scripts/replace_go_mod.sh $(UPDATE_GO_MOD) "./work_dir"
 
 
 build-local:   go.sum $(BUILDDIR)/
@@ -641,7 +643,7 @@ endif
 	$(MAKE) update-go-mod
 	@docker compose  -f docker-compose/docker-compose.local.yml build ethermintnodelocal
 
-change_running_node_owner:
+change-running-node-owner:
 ifeq ($(GITHUB_ACTIONS),true)
 	$(info Running e2e-test-local in a GitHub Actions workflow)
 	sudo chown -R runner:docker running_node/
@@ -650,20 +652,31 @@ else
 	@$(SUDO) chown -R $(USER): running_node/
 endif
 
+
+init-ethermint-node:
+ifeq ($(LOCAL_BUILD),true)
+	$(info LOCAL_BUILD is set, init locally built docker images)
+	@$(MAKE) init-ethermint-node-local
+else
+	$(info LOCAL_BUILD is not set, init docker images from docker registry)
+	@$(MAKE) init-ethermint-node-from-registry
+endif
+
 init-ethermint-node-local:
 	@docker compose -f docker-compose/docker-compose.local.yml run ethermintnodelocal bash /config/setup.sh
-	$(MAKE) change_running_node_owner
+	$(MAKE) change-running-node-owner
 	$(MAKE) generate-fhe-keys
 
+init-ethermint-node-from-registry:
+	@docker compose -f docker-compose/docker-compose.single.validator.yml run validator bash /config/setup.sh
+	$(MAKE) change-running-node-owner
+	$(MAKE) generate-fhe-keys-registry
+
 generate-fhe-keys:
-ifeq ($(USE_DOCKER_FOR_FHE_KEYS),true)
-	$(info USE_DOCKER_FOR_FHE_KEYS is set, use docker)
-	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node1/.ethermintd/zama/keys/network-fhe-keys
-else
-	$(info USE_DOCKER_FOR_FHE_KEYS is not set, build from sources)
-	@$(MAKE) check-fhevm-tfhe-cli
-	@bash ./scripts/prepare_volumes_from_fhe_tool.sh $(FHEVM_TFHE_CLI_PATH)/target/release
-endif
+	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node1/.ethermintd/zama/keys/network-fhe-keys $(PWD)/running_node/node1/.ethermintd/zama/keys/kms-fhe-keys
+
+generate-fhe-keys-registry:
+	@bash ./scripts/prepare_volumes_from_fhe_tool_docker.sh $(FHEVM_TFHE_CLI_VERSION) $(PWD)/running_node/node2/.ethermintd/zama/keys/network-fhe-keys $(PWD)/running_node/node2/.ethermintd/zama/keys/kms-fhe-keys
 
 run-ethermint:
 ifeq ($(LOCAL_BUILD),true)
@@ -671,50 +684,50 @@ ifeq ($(LOCAL_BUILD),true)
 	@docker compose  -f docker-compose/docker-compose.local.yml -f docker-compose/docker-compose.local.override.yml  up --detach
 else
 	$(info LOCAL_BUILD is not set, run docker images from docker registry)
-	@docker compose  -f docker-compose/docker-compose.validator.yml -f docker-compose/docker-compose.validator.override.yml  up --detach
+	@docker compose  -f docker-compose/docker-compose.single.validator.yml -f docker-compose/docker-compose.single.validator.override.yml  up --detach
 endif
 	@echo 'sleep a little to let the docker start up'
 	sleep 10
 
 stop-ethermint:
 ifeq ($(LOCAL_BUILD),true)
-	$(info LOCAL_BUILD is set, run locally built docker images)
+	$(info LOCAL_BUILD is set, stop locally built docker images)
 	@docker compose  -f docker-compose/docker-compose.local.yml down
 else
-	$(info LOCAL_BUILD is not set, run docker images from docker registry)
-	@docker compose  -f docker-compose/docker-compose.validator.yml down
+	$(info LOCAL_BUILD is not set, stop docker images from docker registry)
+	@docker compose  -f docker-compose/docker-compose.single.validator.yml down
+
 endif
+
+TEST_FILE := run_tests.sh
+TEST_IF_FROM_REGISTRY := 
 
 run-e2e-test:
 	@cd $(FHEVM_SOLIDITY_PATH) && npm ci
-## Copy the run_tests.sh script directly in fhevm-solidity for the nxt version
-	@cp ./scripts/run_tests.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
+# We need to wait so long because as soon as the node start, calling the faucet requires 
+# huge amount of gas. In this case the faucet call is failing. So we wait until we reach a
+# more stable state which requires less gas. 
 	@sleep 60
+ifeq ($(LOCAL_BUILD),true)
+	@cp ./scripts/run_tests.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
 	@cd $(FHEVM_SOLIDITY_PATH) && ci/scripts/run_tests.sh
-	@sleep 5
-
-e2e-test-local: 
-	$(MAKE) init-ethermint-node-local
-	$(MAKE) run-ethermint
-	$(MAKE) run-e2e-test
-	$(MAKE) stop-ethermint
-
-
-e2e-test-from-registry:
-	$(MAKE) init-ethermint-node-from-registry
-	$(MAKE) run-ethermint
-	$(MAKE) run-e2e-test
-	$(MAKE) stop-ethermint
+else
+	@cp ./scripts/run_tests_from_registry.sh $(FHEVM_SOLIDITY_PATH)/ci/scripts/
+	@cd $(FHEVM_SOLIDITY_PATH) && ci/scripts/run_tests_from_registry.sh
+endif
 
 e2e-test:
 	@$(MAKE) check-all-test-repo
 ifeq ($(LOCAL_BUILD),true)
-	$(info LOCAL_BUILD is set, run e2e test from locally built docker images)
-	@$(MAKE) e2e-test-local
+	$(info LOCAL_BUILD is set, run e2e test with locally built docker images)
+	$(MAKE) init-ethermint-node-local
 else
-	$(info LOCAL_BUILD is not set, use docker registry for docker images)
-	@$(MAKE) e2e-test-from-registry
+	$(info LOCAL_BUILD is not set, run e2e test with docker registry for docker images)
+	@$(MAKE) init-ethermint-node-from-registry
 endif
+	$(MAKE) run-ethermint
+	$(MAKE) run-e2e-test
+	$(MAKE) stop-ethermint
 
 
 clean-node-storage:
@@ -726,3 +739,13 @@ clean: clean-node-storage
 	rm -rf $(BUILDDIR)/
 	rm -rf $(WORKDIR)/ 
 	rm -f $(UPDATE_GO_MOD)
+
+
+print-info:
+	@echo 'GO_ETHEREUM_TAG: $(GO_ETHEREUM_VERSION) ---extracted from go.mod'
+	@echo 'FHEVM_GO_TAG: $(FHEVM_GO_VERSION) ---extracted from go.mod'
+	@echo 'FHEVM_TFHE_CLI_VERSION: $(FHEVM_TFHE_CLI_VERSION) ---extracted from Makefile'
+	@echo 'FHEVM_SOLIDITY_VERSION: $(FHEVM_SOLIDITY_VERSION) ---extracted from Makefile'
+	@bash scripts/get_repository_info.sh zbc-ethermint ${CURDIR}
+	@bash scripts/get_repository_info.sh fhevm $(FHEVM_SOLIDITY_PATH)
+

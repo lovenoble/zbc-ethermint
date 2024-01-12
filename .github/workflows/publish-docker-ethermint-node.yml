@@ -66,13 +66,7 @@ jobs:
           token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
           path: ./ethermint/work_dir/fhevm-go
           ref: ${{ env.FHEVM_GO_VERSION }}
-
-      - name: Checkout tfhe-rs
-        uses: actions/checkout@v3
-        with:
-          repository: zama-ai/tfhe-rs
-          path: ./ethermint/work_dir/fhevm-go/tfhe-rs
-          ref: ${{ env.TFHE_RS_VERSION }}
+          submodules: recursive
 
 
       - name: Check OS
@@ -105,7 +99,7 @@ jobs:
         run: |
           ls ${{ github.workspace }}
           ls ${{ github.workspace }}/ethermint/work_dir
-          tree -L 2
+          tree -L 2 ${{ github.workspace }}/ethermint/work_dir
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4c0219f9ac95b02789c1075625400b2acbff50b1
