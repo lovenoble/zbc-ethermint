@@ -16,12 +16,20 @@ ifndef DOCKER_PULL_GITHUB_USER
 	$(error DOCKER_PULL_GITHUB_USER is undefined, needed for pulling image from gcr in remote host)
 endif
 
+.PHONY: login_public_node
 login_public_node: check_ssh_key terraform.tfstate
 	ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$(shell $(PUBLIC_NODE_IP_EXPR))
+
+.PHONY: setup_periodic_tests
+setup_periodic_tests: check_ssh_key terraform.tfstate
+	cat setup_periodic_tests.sh | \
+	  ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+	  ubuntu@$(shell $(PUBLIC_NODE_IP_EXPR)) '/bin/bash'
 
 terraform.tfvars:
 	echo 'ssh_public_key = "$(shell ssh-add -L)"' > terraform.tfvars
 
+.PHONY: localnet
 localnet: localnet/fhevm-keys
 	DOCKER_IMAGE=$(DOCKER_IMAGE) MNEMONIC="$(MNEMONIC)" ./setup_genesis.sh
 
@@ -74,6 +82,7 @@ full_setup: check_env generate_genesis
 	$(MAKE) upload_genesis
 	$(MAKE) start_kms
 	$(MAKE) start_validators
+	$(MAKE) setup_periodic_tests
 
 teardown:
 	-ps aux | grep -i python | grep sshuttle | awk '{print $$2}' | sudo xargs kill
