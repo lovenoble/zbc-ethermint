@@ -172,6 +172,13 @@ resource "aws_security_group_rule" "vpn_sg_internet" {
   security_group_id = aws_security_group.vpn_sg.id
 }
 
+resource "aws_iam_instance_profile" "logs_ec2_instance_profile" {
+  name = "logs-ec2-instance-profile"
+
+  # Attach the existing IAM role to the instance profile
+  role = "zbc-cloud-watch"
+}
+
 # Create the VPN server in a public subnet with public IP and Elastic IP and update its variable to use the EIP
 resource "aws_instance" "validator_testnet_vpn" {
   ami = "${var.ami}"
@@ -182,6 +189,7 @@ resource "aws_instance" "validator_testnet_vpn" {
   source_dest_check = false
 
   key_name = aws_key_pair.machine_key.id
+  iam_instance_profile = aws_iam_instance_profile.logs_ec2_instance_profile.name
 
   security_groups = [aws_security_group.vpn_sg.id]
 
@@ -265,6 +273,7 @@ resource "aws_instance" "validator_testnet_kms" {
   subnet_id = aws_subnet.internal_subnet.id
 
   key_name = aws_key_pair.machine_key.id
+  iam_instance_profile = aws_iam_instance_profile.logs_ec2_instance_profile.name
 
   user_data = <<-EOF
                 #!/bin/bash
@@ -328,6 +337,7 @@ resource "aws_instance" "validator_testnet_workers" {
   subnet_id = aws_subnet.internal_subnet.id
 
   key_name = aws_key_pair.machine_key.id
+  iam_instance_profile = aws_iam_instance_profile.logs_ec2_instance_profile.name
 
   user_data = <<-EOF
                 #!/bin/bash
@@ -392,6 +402,7 @@ resource "aws_instance" "block_explorer" {
   subnet_id = aws_subnet.internal_subnet.id
 
   key_name = aws_key_pair.machine_key.id
+  iam_instance_profile = aws_iam_instance_profile.logs_ec2_instance_profile.name
 
   user_data = <<-EOF
                 #!/bin/bash
