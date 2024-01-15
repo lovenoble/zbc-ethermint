@@ -428,6 +428,7 @@ resource "aws_instance" "block_explorer" {
                 unzip v5.3.3-beta.zip
                 cd /home/ubuntu/blockscout-5.3.3-beta/docker-compose
 
+                sed -i 's|# INDEXER_TOKEN_BALANCES_BATCH_SIZE=|INDEXER_TOKEN_BALANCES_BATCH_SIZE=0|g' envs/common-blockscout.env
                 sed -i 's|Awesome chain|${var.chain_name}|g' envs/common-frontend.env
                 sed -i 's|Awesome chain|${var.chain_name}|g' envs/common-blockscout.env
                 sed -i 's|ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_HTTP_URL: http://10.0.0.17:8545/|g' docker-compose.yml
