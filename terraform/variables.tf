@@ -55,7 +55,7 @@ variable "worker_type" {
 
 variable "worker_disk_size_gb" {
   type = number
-  default = 30
+  default = 300
 }
 
 variable "cidr_vpc" {
