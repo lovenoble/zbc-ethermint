@@ -13,6 +13,7 @@ services:
       - FHEVM_GO_KEYS_DIR=/root/.ethermintd/fhevm-keys
       - ZAMA_TESTNET=true
       - KMS_ENDPOINT_ADDR=10.0.0.50:50051
+      - CHAINID=SUBSTITUTED_CHAIN_ID
     volumes:
       - /home/ubuntu/ethermintd:/root/.ethermintd
     command:

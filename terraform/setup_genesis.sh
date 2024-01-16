@@ -1,10 +1,14 @@
 #!/bin/bash
 
-CHAIN=ethermint
 DENOM=aphoton
 
-CHAINID="$CHAIN"_9000-1
 MONIKER="orchestrator"
+
+if [ -z "$CHAINID" ];
+then
+    echo "\$CHAINID environment variable is undefined"
+    exit 1
+fi
 
 # Orchestrator account
 KEY="orchestrator"
@@ -55,7 +59,7 @@ $CHAIND testnet init-files --v $VALIDATOR_COUNT -o $BUILD_DIR_DOCKER --keyring-b
 
 echo "Create and add Orchestrator keys"
 echo "$MNEMONIC" | $CHAIND keys add "$KEY" --home "$DATA_DIR_DOCKER" --no-backup --chain-id "$CHAINID" --keyring-backend test --recover
-echo "Init $CHAIN with moniker=$MONIKER and chain-id=$CHAINID"
+echo "Init $CHAINID with moniker=$MONIKER and chain-id=$CHAINID"
 $CHAIND init "$MONIKER" --chain-id "$CHAINID" --home "$DATA_DIR_DOCKER"
 
 echo "Prepare genesis..."
@@ -113,7 +117,10 @@ for i in $(ls $BUILD_DIR | grep 'node');do
     # but image is not released yet at the time of this writing
     cp ../faucet.py $BUILD_DIR/$i/ethermintd/
     # no need to rsync twice, set the used docker image
-    sed "s|DOCKER_IMAGE|$DOCKER_IMAGE|g" docker-compose.yml > $BUILD_DIR/$i/ethermintd/docker-compose.yml
+    cat docker-compose.yml | \
+		sed "s|DOCKER_IMAGE|$DOCKER_IMAGE|g" | \
+		sed "s|SUBSTITUTED_CHAIN_ID|$CHAINID|g" \
+		> $BUILD_DIR/$i/ethermintd/docker-compose.yml
 done
 
 echo "copy config.toml to get the seeds"

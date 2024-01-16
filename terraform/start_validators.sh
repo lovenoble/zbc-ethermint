@@ -5,9 +5,11 @@ set -x
 LOCALNET_DIR=$(pwd)/localnet
 BUILD_DIR=$LOCALNET_DIR/build
 TARGET_NODE_IP_START=10
-CHAIN=ethermint
-CHAINID="$CHAIN"_9000-1
-
+if [ -z "$CHAINID" ];
+then
+    echo "\$CHAINID environment variable is undefined"
+    exit 1
+fi
 echo Prepare for validator run
 
 TARGET_NODE_COUNT=$TARGET_NODE_IP_START

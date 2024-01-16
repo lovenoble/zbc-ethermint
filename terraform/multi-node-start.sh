@@ -1,12 +1,16 @@
 #!/bin/bash
 
 
-CHAIN=ethermint
-CHAIN_ID="$CHAIN"_9000-1
 CHAIND=/usr/bin/ethermintd
 DATA_DIR=/root/.ethermintd
 CONFIG=$DATA_DIR/config/config.toml
 APP_CONFIG=$DATA_DIR/config/app.toml
+
+if [ -z "$CHAINID" ];
+then
+    echo "\$CHAINID environment variable is undefined"
+    exit 1
+fi
 
 sed -i 's/prometheus = false/prometheus = true/g' $CONFIG
 sed -i 's/enable-indexer = false/enable-indexer = true/g' $APP_CONFIG
@@ -37,9 +41,9 @@ if [ ! -d /root/.ethermintd/keyring-test ]; then
     ARCHIVAL_NODE_ARGS="--json-rpc.api=eth,net,web3,debug,txpool --pruning=nothing"
 fi
 
-echo "running $CHAIN with extra flags $EXTRA_FLAGS"
-echo "starting $CHAIN node in background ..."
+echo "running $CHAINID with extra flags $EXTRA_FLAGS"
+echo "starting $CHAINID node in background ..."
 echo "$CHAIND start $ARCHIVAL_NODE_ARGS --rpc.unsafe --keyring-backend test "$EXTRA_FLAGS" >"$DATA_DIR"/node.log"
 $CHAIND start --rpc.unsafe \
 --json-rpc.enable true --api.enable $ARCHIVAL_NODE_ARGS \
---keyring-backend test --chain-id $CHAIN_ID $EXTRA_FLAGS
+--keyring-backend test --chain-id $CHAINID $EXTRA_FLAGS

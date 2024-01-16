@@ -28,7 +28,7 @@ resource "aws_key_pair" "machine_key" {
 
 # Define subnet CIDR blocks
 locals {
-  subnet_suffix = range(10, 99)
+  subnet_suffix = range(10, 49)
 }
 
 # Create subnets with internal IPs

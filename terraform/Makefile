@@ -2,6 +2,7 @@
 MNEMONIC ?= stumble tilt business detect father ticket major inner awake jeans name vibrant tribe pause crunch sad wine muscle hidden pumpkin inject segment rocket silver
 DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2.2
 PUBLIC_NODE_IP_EXPR = jq -r '.resources[] | select(.type=="aws_instance") | select(.instances[].attributes.public_ip != "") | .instances[].attributes.public_ip' terraform.tfstate
+CHAINID ?= ethermint_8009-1
 
 .PHONY: check_ssh_key
 check_ssh_key:
@@ -31,7 +32,10 @@ terraform.tfvars:
 
 .PHONY: localnet
 localnet: localnet/fhevm-keys
-	DOCKER_IMAGE=$(DOCKER_IMAGE) MNEMONIC="$(MNEMONIC)" ./setup_genesis.sh
+	DOCKER_IMAGE=$(DOCKER_IMAGE) \
+	MNEMONIC="$(MNEMONIC)" \
+	CHAINID="$(CHAINID)" \
+	  ./setup_genesis.sh
 
 localnet/fhevm-keys:
 	mkdir -p localnet/fhevm-keys
@@ -56,6 +60,7 @@ start_validators: check_env
 	DOCKER_PULL_GITHUB_TOKEN=$(DOCKER_PULL_GITHUB_TOKEN) \
 	DOCKER_PULL_GITHUB_USER=$(DOCKER_PULL_GITHUB_USER) \
 	MNEMONIC="$(MNEMONIC)" \
+	CHAINID="$(CHAINID)" \
 	 ./start_validators.sh
 
 .PHONY: start_kms
@@ -70,7 +75,7 @@ sshuttle: check_ssh_key
 	sshuttle -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' \
 	 -D -r ubuntu@$(shell $(PUBLIC_NODE_IP_EXPR)) 10.0.0.0/24
 
-terraform_apply: check_ssh_key localnet terraform.tfvars
+terraform_apply: check_ssh_key terraform.tfvars
 	terraform apply -auto-approve
 
 full_setup: check_env generate_genesis
