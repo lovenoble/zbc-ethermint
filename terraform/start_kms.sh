@@ -2,6 +2,12 @@
 
 set -x
 
+if [ -z "$REGION" ];
+then
+    echo "\$REGION environment variable is undefined"
+    exit 1
+fi
+
 echo Prepare for validator run
 
 DOCKER_IMAGE=ghcr.io/zama-ai/kms:v0.1.2
@@ -13,6 +19,12 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
     mkdir /home/ubuntu/fhevm-keys; \
     stat /home/ubuntu/fhevm-keys/cks.bin || curl http://10.0.0.100/cks > /home/ubuntu/fhevm-keys/cks.bin; \
     ( sudo docker ps | grep testnet_kms ) || \
-      sudo docker run -d --network=host --name=testnet_kms \
+      sudo docker run -d \
+        --network=host --name=testnet_kms \
         -v /home/ubuntu/fhevm-keys:/usr/src/kms-server/temp \
+        --log-driver=awslogs \
+        --log-opt awslogs-region=$REGION \
+        --log-opt awslogs-group=zbc-prod-logs \
+        --log-opt awslogs-stream=zbc-prod-kms-50 \
+        --log-opt awslogs-create-group=true \
         $DOCKER_IMAGE"

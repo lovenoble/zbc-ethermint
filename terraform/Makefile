@@ -70,6 +70,7 @@ start_validators: check_env
 start_kms: check_env
 	DOCKER_PULL_GITHUB_TOKEN=$(DOCKER_PULL_GITHUB_TOKEN) \
 	DOCKER_PULL_GITHUB_USER=$(DOCKER_PULL_GITHUB_USER) \
+	REGION=$(AWS_REGION) \
 	 ./start_kms.sh
 
 .PHONY: sshuttle
