@@ -10,6 +10,12 @@ then
     exit 1
 fi
 
+if [ -z "$REGION" ];
+then
+    echo "\$REGION environment variable is undefined"
+    exit 1
+fi
+
 # Orchestrator account
 KEY="orchestrator"
 if [ -z "$MNEMONIC" ];
@@ -106,6 +112,7 @@ echo "- Run validate-genesis to ensure everything worked and that the genesis fi
 $CHAIND validate-genesis --home $DATA_DIR_DOCKER
 
 echo "- Distribute final genesis.json to all validators"
+TARGET_NODE_COUNT=10
 for i in $(ls $BUILD_DIR | grep 'node');do
     # TODO uncomment this when issue https://github.com/evmos/ethermint/issues/1579 is solved
     # cp $GENESIS $BUILD_DIR/$i/$CHAIND/config/genesis.json
@@ -115,12 +122,18 @@ for i in $(ls $BUILD_DIR | grep 'node');do
     cp multi-node-start.sh $BUILD_DIR/$i/ethermintd/
     # in future good faucet will be installed in the image
     # but image is not released yet at the time of this writing
+    NODE_NO=$( echo "$i" | sed -E 's/^node//g' )
+    LOGS_STREAM=val-$TARGET_NODE_COUNT
     cp ../faucet.py $BUILD_DIR/$i/ethermintd/
     # no need to rsync twice, set the used docker image
     cat docker-compose.yml | \
-		sed "s|DOCKER_IMAGE|$DOCKER_IMAGE|g" | \
-		sed "s|SUBSTITUTED_CHAIN_ID|$CHAINID|g" \
-		> $BUILD_DIR/$i/ethermintd/docker-compose.yml
+        sed "s|DOCKER_IMAGE|$DOCKER_IMAGE|g" | \
+        sed "s|SUBSTITUTED_CHAIN_ID|$CHAINID|g" | \
+        sed "s|LOGS_REGION|$REGION|g" | \
+        sed "s|LOGS_STREAM|zbc-prod-$LOGS_STREAM|g" \
+        > $BUILD_DIR/$i/ethermintd/docker-compose.yml
+
+    TARGET_NODE_COUNT=$(( TARGET_NODE_COUNT + 1 ))
 done
 
 echo "copy config.toml to get the seeds"
@@ -135,13 +148,22 @@ echo "copy app.toml to have same config on all nodes"
 cp $BUILD_DIR/node0/ethermintd/config/app.toml $CONF_DIR/app.toml
 
 # create full nodes without validator private keys
-for i in $(seq $FULL_NODE_FIRST_IDX $FULL_NODE_LAST_IDX); do
-	TARGET_DIR=$BUILD_DIR/node$i
-	echo $TARGET_DIR
-	cp -r $BUILD_DIR/node0 $TARGET_DIR
-	rm $BUILD_DIR/node$i/ethermintd/key_seed.json
-	rm $BUILD_DIR/node$i/ethermintd/config/node_key.json
-	rm $BUILD_DIR/node$i/ethermintd/config/priv_validator_key.json
-	rm $BUILD_DIR/node$i/ethermintd/data/priv_validator_state.json
-	rm -rf $BUILD_DIR/node$i/ethermintd/keyring-test
+TARGET_NODE_COUNT=$(( FULL_NODE_FIRST_IDX + 10 ))
+END_IDX=$(( $FULL_NODE_LAST_IDX - 1 ))
+for i in $(seq $FULL_NODE_FIRST_IDX $END_IDX); do
+    TARGET_DIR=$BUILD_DIR/node$i
+    LOGS_STREAM=zbc-prod-rpc-$TARGET_NODE_COUNT
+    echo $TARGET_DIR
+    cp -r $BUILD_DIR/node0 $TARGET_DIR
+    rm $BUILD_DIR/node$i/ethermintd/key_seed.json
+    rm $BUILD_DIR/node$i/ethermintd/config/node_key.json
+    rm $BUILD_DIR/node$i/ethermintd/config/priv_validator_key.json
+    rm $BUILD_DIR/node$i/ethermintd/data/priv_validator_state.json
+    rm -rf $BUILD_DIR/node$i/ethermintd/keyring-test
+
+    sed -iE \
+        "s|awslogs-stream: .*\$|awslogs-stream: $LOGS_STREAM|" \
+        $BUILD_DIR/node$i/ethermintd/docker-compose.yml
+
+    TARGET_NODE_COUNT=$(( TARGET_NODE_COUNT + 1 ))
 done

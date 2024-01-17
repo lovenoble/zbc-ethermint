@@ -5,10 +5,12 @@ services:
     network_mode: host
     restart: always
     logging:
-      driver: "json-file"
+      driver: awslogs
       options:
-        max-size: "100m"
-        max-file: "3"
+        awslogs-region: LOGS_REGION
+        awslogs-group: zbc-prod-logs
+        awslogs-stream: LOGS_STREAM
+        awslogs-create-group: "true"
     environment:
       - FHEVM_GO_KEYS_DIR=/root/.ethermintd/fhevm-keys
       - ZAMA_TESTNET=true

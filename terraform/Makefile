@@ -3,6 +3,7 @@ MNEMONIC ?= stumble tilt business detect father ticket major inner awake jeans n
 DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2.2
 PUBLIC_NODE_IP_EXPR = jq -r '.resources[] | select(.type=="aws_instance") | select(.instances[].attributes.public_ip != "") | .instances[].attributes.public_ip' terraform.tfstate
 CHAINID ?= ethermint_8009-1
+AWS_REGION ?= eu-west-2
 
 .PHONY: check_ssh_key
 check_ssh_key:
@@ -28,13 +29,15 @@ setup_periodic_tests: check_ssh_key terraform.tfstate
 	  ubuntu@$(shell $(PUBLIC_NODE_IP_EXPR)) '/bin/bash'
 
 terraform.tfvars:
-	echo 'ssh_public_key = "$(shell ssh-add -L)"' > terraform.tfvars
+	echo 'ssh_public_key = "$(shell ssh-add -L)" \
+	region = "$(AWS_REGION)"' > terraform.tfvars
 
 .PHONY: localnet
 localnet: localnet/fhevm-keys
-	DOCKER_IMAGE=$(DOCKER_IMAGE) \
+	DOCKER_IMAGE="$(DOCKER_IMAGE)" \
 	MNEMONIC="$(MNEMONIC)" \
 	CHAINID="$(CHAINID)" \
+	REGION="$(AWS_REGION)" \
 	  ./setup_genesis.sh
 
 localnet/fhevm-keys:
