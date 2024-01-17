@@ -34,13 +34,6 @@ jobs:
         with:
           ref: ${{ inputs.ref_to_ethermint }}
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Check OS
         run: |
           lscpu
@@ -69,7 +62,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          build-arg: |
+          build-args: |
             ETHERMINT_NODE_VERSION=${{ inputs.ethermint_node_tag }}
             TFHE_CLI_VERSION=${{ inputs.tfhe_cli_tag }}
           context: .

@@ -2,7 +2,7 @@ version: '3'
 
 services:
   validator:
-    image: ghcr.io/zama-ai/ethermint-node:v0.2.2
+    image: ghcr.io/zama-ai/ethermint-node:v0.2.3
     container_name: ethermintnode0
     ports:
       - "26656-26657:26656-26657"

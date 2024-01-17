@@ -1,5 +1,5 @@
 ARG TFHE_CLI_VERSION=v0.2.2
-ARG ETHERMINT_NODE_VERSION=v0.2.1
+ARG ETHERMINT_NODE_VERSION=v0.2.3
 ARG KMS_VERSION=v0.1.2
 FROM ghcr.io/zama-ai/kms:${KMS_VERSION} as zbc-kms
 FROM ghcr.io/zama-ai/fhevm-tfhe-cli:${TFHE_CLI_VERSION} as tfhe-cli

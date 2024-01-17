@@ -7,7 +7,7 @@
             "mode": "exec",
             "program": "${env:HOME}/go/bin/ethermintd",
             "env": {
-                "FHEVM_GO_KEYS_DIR": "${env:HOME}/fhe_keys/",
+                "FHEVM_GO_KEYS_DIR": "${env:HOME}/network-fhe-keys/",
                 "KMS_ENDPOINT_ADDR": "localhost:50051"
 
             },
