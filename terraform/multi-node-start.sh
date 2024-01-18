@@ -16,7 +16,7 @@ sed -i 's/prometheus = false/prometheus = true/g' $CONFIG
 sed -i 's/enable-indexer = false/enable-indexer = true/g' $APP_CONFIG
 #perl -i -0pe 's/# Enable defines if the API server should be enabled.\nenable = false/# Enable defines if the API server should be enabled.\nenable = true/' $APP_CONFIG
 
-sed -i 's/timeout_commit = "5s"/timeout_commit = "3s"/g' "$CONFIG"
+sed -i 's/timeout_commit = "5s"/timeout_commit = "7s"/g' "$CONFIG"
 # make sure the localhost IP is 0.0.0.0
 sed -i 's/pprof_laddr = "localhost:6060"/pprof_laddr = "0.0.0.0:6060"/g' "$CONFIG"
 sed -i 's/127.0.0.1/0.0.0.0/g' "$APP_CONFIG"
