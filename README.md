@@ -15,7 +15,7 @@ parent:
 </p>
 <p align="center">
 <!-- Version badge using shields.io -->
-  <a href="https://github.com/zama-ai/zbc-ethermint/releases">
+  <a href="https://github.com/zama-ai/zbc-ethermint/releases/latest">
     <img src="https://img.shields.io/github/v/release/zama-ai/zbc-ethermint?style=flat-square">
   </a>
 <!-- Zama Bounty Program -->
@@ -126,4 +126,4 @@ docker exec -i ethermintnodelocal0 faucet 0xfCefe53c7012a075b8a711df391100d9c431
 
 ## License
 
-This software is distributed under the  GPLv3. If you have any questions, please contact us at hello@zama.ai.
+This software is distributed under the  LGPLv3. If you have any questions, please contact us at hello@zama.ai.
