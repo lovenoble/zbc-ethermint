@@ -3,106 +3,55 @@ parent:
   order: false
 -->
 
-<div align="center">
-  <h1> Ethermint </h1>
-</div>
 
-![banner](docs/ethermint.jpg)
 
-<div align="center">
-  <a href="https://github.com/evmos/ethermint/releases/latest">
-    <img alt="Version" src="https://img.shields.io/github/tag/tharsis/ethermint.svg" />
+<p align="center">
+<!-- product name logo -->
+  <img width=600 src="https://github.com/zama-ai/fhevm/assets/1384478/265d051c-e177-42b4-b9a2-d2b2e474131b">
+</p>
+<hr/>
+<p align="center">
+  <a href="https://docs.zama.ai/fhevm"> 📒 Read documentation</a> | <a href="https://zama.ai/community"> 💛 Community support</a>
+</p>
+<p align="center">
+<!-- Version badge using shields.io -->
+  <a href="https://github.com/zama-ai/zbc-ethermint/releases">
+    <img src="https://img.shields.io/github/v/release/zama-ai/zbc-ethermint?style=flat-square">
   </a>
-  <a href="https://github.com/evmos/ethermint/blob/main/LICENSE">
-    <img alt="License: Apache-2.0" src="https://img.shields.io/github/license/tharsis/ethermint.svg" />
+<!-- Zama Bounty Program -->
+  <a href="https://github.com/zama-ai/bounty-program">
+    <img src="https://img.shields.io/badge/Contribute-Zama%20Bounty%20Program-yellow?style=flat-square">
   </a>
-  <a href="https://pkg.go.dev/github.com/evmos/ethermint">
-    <img alt="GoDoc" src="https://godoc.org/github.com/evmos/ethermint?status.svg" />
-  </a>
-  <a href="https://goreportcard.com/report/github.com/evmos/ethermint">
-    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/evmos/ethermint"/>
-  </a>
-  <a href="https://bestpractices.coreinfrastructure.org/projects/5018">
-    <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/tharsis/ethermint">
-  </a>
-</div>
-<div align="center">
-  <a href="https://discord.gg/trje9XuAmy">
-    <img alt="Discord" src="https://img.shields.io/discord/809048090249134080.svg" />
-  </a>
-  <a href="https://github.com/evmos/ethermint/actions?query=branch%3Amain+workflow%3ALint">
-    <img alt="Lint Status" src="https://github.com/evmos/ethermint/actions/workflows/lint.yml/badge.svg?branch=main" />
-  </a>
-  <a href="https://codecov.io/gh/tharsis/ethermint">
-    <img alt="Code Coverage" src="https://codecov.io/gh/tharsis/ethermint/branch/main/graph/badge.svg" />
-  </a>
-</div>
+</p>
+<hr/>
 
-## A new ethermint, why?
+## Ethermint
 
-THe goal of this repository is to take the last version of Ethermint using
-CometBFT and use it for our own lightweight, easy to upgrade stack.
+Ethermint is a scalable and interoperable Ethereum library, built on
+Proof-of-Stake with fast-finality using the
+[Cosmos SDK](https://github.com/cosmos/cosmos-sdk/) which runs on top of
+[CometBFT](https://github.com/cometbft/cometbft) consensus engine.
 
-STATUS:
+## About
 
-For now Ethermint is using the last version of go-ethereum (v1.13.5).
-Fhevm-go is integrated. 
+For now Ethermint is using go-ethereum v1.13.5, with fhEVM support.
 
-## How to run using docker images from registry
+## Run the Ethermint node in the debugger
 
-Ensure LOCAL_BUILD is set to fale in .env.
-
-
-
-
-```bash
-make init-ethermint-node
-
-```
-
-
-## Run the ethermint node in the debugger
-
-Follow this [tutorial](DEBUG.md)
-
-## How to build locally from source without docker
-
-Update dependency to go-ethereum and fhevm-go
-
-```bash
-diff --git a/go.mod b/go.mod
-index 015ed206..d9ab6632 100644
---- a/go.mod
-+++ b/go.mod
-@@ -221,8 +221,9 @@ require (
- replace (
-        // use cosmos keyring
-        github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
--       github.com/ethereum/go-ethereum v1.13.5 => github.com/zama-ai/zbc-go-ethereum v0.1.1-gamma-kms
-+       github.com/ethereum/go-ethereum v1.13.5 => ../zbc-go-ethereum
-        // PLACEHOLDER_FHEVM_GO
-+       github.com/zama-ai/fhevm-go v0.1.1-gamma-kms => ../fhevm-go
-```
-
-Update dependency to fhevm-go in zbc-go-ethereum:
-
-NOTE: this step seems to not be needed! The reason could be that go package manager choose the local one (precised in zbc-ethermint go.mod)
-if initially the point to the same version. (TO BE CONFIRMED)
-
-```bash
-make build-local
-```
-
+If you want to go deeper in the code and need to add some breakpoints, follow this [tutorial](DEBUG.md) to build from sources and activate the debugger in vscode.
 
 
 ## How to run using docker images from registry
 
-Ensure LOCAL_BUILD is set to fale in .env.
+Ensure LOCAL_BUILD is set to **false** in .env.
 
-To initalize the node:
+To initalize and run the node:
 
 ```bash
 make init-ethermint-node
+make run-ethermint
+# make stop-ethermint
+# make clean
 ```
 
 To run directly e2e test:
@@ -112,14 +61,13 @@ make e2e-test
 ```
 
 
-
 ## How to run using docker locally
+
+Run the following command to create the image **ethermintnodelocal**.
 
 ```bash
 make build-local-docker
 ```
-
-This create the image **ethermintnodelocal**
 
 Init the node (configuration files)
 
@@ -127,31 +75,29 @@ Init the node (configuration files)
 make init-ethermint-node-local
 ```
 
-THis will create every needed files under __running_node/node1/.ethermintd__.
+This will create every needed files under __running_node/node1/.ethermintd__.
 ```bash
 running_node/node1/.ethermintd/
+.
 ├── config
-│   ├── app.toml
-│   ├── client.toml
-│   ├── config.toml
-│   ├── genesis.json
-│   ├── gentx
-│   │   └── gentx-e65f04e8cb66e1978bf41a3b0d3149cdb5cd8f78.json
-│   ├── node_key.json
-│   └── priv_validator_key.json
+│   ├── app.toml
+│   ├── client.toml
+│   ├── config.toml
+│   ├── genesis.json
+│   ├── gentx
+│   │   └── gentx-bdaef3bad17f4da9489d90c139a3466145ca6f9d.json
+│   ├── node_key.json
+│   └── priv_validator_key.json
 ├── data
-│   └── priv_validator_state.json
+│   └── priv_validator_state.json
 ├── keyring-test
-│   ├── 757bf1fc01075ac7c95bc8407e306cb21c1476c1.address
-│   └── orchestrator.info
+│   ├── ec41480801211af6f2aa0c1f2703b688bf460ef8.address
+│   └── orchestrator.info
 └── zama
     ├── config
     └── keys
-        ├── network-fhe-keys
-        │   ├── cks
-        │   ├── pks
-        │   └── sks
-        └── users-fhe-keys
+        ├── kms-fhe-keys
+        └── network-fhe-keys
 ```
 
 Run/stop the node
@@ -170,37 +116,14 @@ Give Alice (first account in fhevm test) some coins:
 docker exec -i ethermintnodelocal0 faucet 0xa5e1defb98EFe38EBb2D958CEe052410247F4c80
 # bob
 docker exec -i ethermintnodelocal0 faucet 0xfCefe53c7012a075b8a711df391100d9c431c468
-
 ```
 
+## Need support?
 
+<a target="_blank" href="https://community.zama.ai">
+  <img src="https://user-images.githubusercontent.com/5758427/231145251-9cb3f03f-3e0e-4750-afb8-2e6cf391fa43.png">
+</a>
 
-> [!WARNING] Evmos, the team behind Ethermint, has fully shifted its focus to
-> [Evmos](https://github.com/evmos/evmos), where we continue to build
-> interoperability solutions for the future! As a result, this repository is no
-> longer maintained for that reason and all relevant code has been migrated.
->
-> **NOTE: If you are interested in using this software** email us at
-> [evmos-sdk@evmos.org](mailto:evmos-sdk@evmos.org) with copy to
-> [legal@thars.is](mailto:legal@thars.is)
+## License
 
-## About
-
-Ethermint is a scalable and interoperable Ethereum library, built on
-Proof-of-Stake with fast-finality using the
-[Cosmos SDK](https://github.com/cosmos/cosmos-sdk/) which runs on top of
-[Tendermint Core](https://github.com/tendermint/tendermint) consensus engine.
-
-## Careers
-
-See our open positions on [Greenhouse](https://evmos.org/careers).
-
-## Community
-
-The following chat channels and forums are a great spot to ask questions about
-Ethermint:
-
-- [Evmos Twitter](https://twitter.com/EvmosOrg)
-- [Evmos Discord](https://discord.gg/trje9XuAmy)
-- [Evmos Telegram](https://t.me/EvmosOrg)
-- [Altiplanic Twitter](https://twitter.com/Altiplanic_io)
+This software is distributed under the  GPLv3. If you have any questions, please contact us at hello@zama.ai.
