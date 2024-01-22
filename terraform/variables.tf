@@ -5,17 +5,17 @@ variable "chain_name" {
 
 variable "explorer_dns_name" {
   type = string
-  default = "explorer.fhe-ethermint.zama.ai"
+  default = "main.explorer.zama.ai"
 }
 
 variable "rpc_dns_name" {
   type = string
-  default = "rpc.fhe-ethermint.zama.ai"
+  default = "devnet.zama.ai"
 }
 
 variable "ws_dns_name" {
   type = string
-  default = "ws.fhe-ethermint.zama.ai"
+  default = "devnet.ws.zama.ai"
 }
 
 variable "region" {
