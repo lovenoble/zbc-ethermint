@@ -20,7 +20,7 @@ Description=Run fhevm tests
 User=ubuntu
 Group=ubuntu
 Type=oneshot
-ExecStart=/usr/bin/npx hardhat test --network multipleValidatorTestnet
+ExecStart=/usr/bin/npx hardhat test --network zama
 WorkingDirectory=/home/ubuntu/fhevm
 
 [Install]

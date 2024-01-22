@@ -1,6 +1,6 @@
 variable "chain_name" {
   type = string
-  default = "FHE Ethermint testnet"
+  default = "ZAMA Devnet"
 }
 
 variable "explorer_dns_name" {

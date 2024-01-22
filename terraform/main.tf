@@ -447,6 +447,7 @@ resource "aws_instance" "block_explorer" {
                 sed -i 's|ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_HTTP_URL: http://10.0.0.17:8545/|g' docker-compose.yml
                 sed -i 's|ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/|ETHEREUM_JSONRPC_TRACE_URL: http://10.0.0.17:8545/|g' docker-compose.yml
                 sed -i 's|ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/|ETHEREUM_JSONRPC_WS_URL: ws://10.0.0.17:8546/|g' docker-compose.yml
+                sed -i "s|CHAIN_ID: '1337'|CHAIN_ID: '8009'|g" docker-compose.yml
                 sed -i 's|NEXT_PUBLIC_API_HOST=localhost|NEXT_PUBLIC_API_HOST=${var.explorer_dns_name}|g' envs/common-frontend.env
                 sed -i 's|NEXT_PUBLIC_APP_HOST=localhost|NEXT_PUBLIC_APP_HOST=${var.explorer_dns_name}|g' envs/common-frontend.env
                 sed -i 's|NEXT_PUBLIC_STATS_API_HOST=http://localhost:8080|NEXT_PUBLIC_STATS_API_HOST=https://${var.explorer_dns_name}|g' envs/common-frontend.env
