@@ -1,6 +1,6 @@
 
 MNEMONIC ?= stumble tilt business detect father ticket major inner awake jeans name vibrant tribe pause crunch sad wine muscle hidden pumpkin inject segment rocket silver
-DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2.2
+DOCKER_IMAGE ?= ghcr.io/zama-ai/ethermint-node:v0.2.3
 PUBLIC_NODE_IP_EXPR = jq -r '.resources[] | select(.type=="aws_instance") | select(.instances[].attributes.public_ip != "") | .instances[].attributes.public_ip' terraform.tfstate
 CHAINID ?= ethermint_8009-1
 AWS_REGION ?= eu-west-2
