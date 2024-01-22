@@ -71,7 +71,7 @@ resource "aws_security_group_rule" "alb_sg_https" {
 resource "aws_security_group_rule" "alb_sg_egress_rpc" {
   type              = "egress"
   from_port         = 8545
-  to_port           = 8545
+  to_port           = 8546
   protocol          = "tcp"
   cidr_blocks       = ["${var.cidr_subnet}"]
   security_group_id = aws_security_group.alb_sg.id
@@ -483,6 +483,7 @@ resource "aws_instance" "block_explorer" {
   ]
 }
 
+# RPC load balancer
 resource "aws_lb" "rpc_alb" {
   name               = "full-node-rpc-elb"
   internal           = false
@@ -609,6 +610,71 @@ resource "aws_lb_target_group_attachment" "blockscout_alb_tg_attachment" {
   port             = 80
 }
 
+# WS load balancer
+resource "aws_lb" "ws_alb" {
+  name               = "full-node-ws-elb"
+  internal           = false
+  load_balancer_type = "application"
+
+  subnets = [aws_subnet.internal_subnet.id, aws_subnet.elb_extra_subnet.id]
+  security_groups = [aws_security_group.alb_sg.id]
+
+  tags = {
+    Name = "Full Nodes WS elb"
+  }
+}
+
+resource "aws_lb_listener" "ws_alb_http" {
+  load_balancer_arn = aws_lb.ws_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "ws_alb_https" {
+  load_balancer_arn = aws_lb.ws_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate_validation.ws_acm.certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ws_alb_tg.arn
+  }
+}
+
+resource "aws_lb_target_group" "ws_alb_tg" {
+  vpc_id      = aws_vpc.validator_testnet_vpc.id
+
+  name        = "ws-lb-tg"
+  target_type = "instance"
+  port        = 8546
+  protocol    = "HTTP"
+  health_check {
+    protocol = "HTTP"
+    path = "/"
+    port = 8545
+    matcher = "200,405"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "ws_alb_tg_attachment" {
+  count = var.full_node_count
+
+  target_group_arn = aws_lb_target_group.ws_alb_tg.arn
+  target_id        = aws_instance.validator_testnet_workers[var.validator_count + count.index].id
+  port             = 8546
+}
+
 # Certificates for explorer + rpc
 data "aws_route53_zone" "root_zone" {
   name         = "zama.ai"
@@ -690,4 +756,42 @@ resource "aws_route53_record" "rpc_dns_cname" {
 resource "aws_acm_certificate_validation" "rpc_acm" {
   certificate_arn         = aws_acm_certificate.rpc_acm.arn
   validation_record_fqdns = [for record in aws_route53_record.rpc_dns_verification : record.fqdn]
+}
+
+# WS certificates + DNS
+resource "aws_acm_certificate" "ws_acm" {
+  domain_name       = var.ws_dns_name
+  validation_method = "DNS"
+}
+
+resource "aws_route53_record" "ws_dns_verification" {
+  for_each = {
+    for dvo in aws_acm_certificate.ws_acm.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.root_zone.zone_id
+}
+
+resource "aws_route53_record" "ws_dns_cname" {
+  name            = var.ws_dns_name
+  records         = [aws_lb.ws_alb.dns_name]
+  type            = "CNAME"
+
+  allow_overwrite = true
+  ttl             = 60
+  zone_id         = data.aws_route53_zone.root_zone.zone_id
+}
+
+resource "aws_acm_certificate_validation" "ws_acm" {
+  certificate_arn         = aws_acm_certificate.ws_acm.arn
+  validation_record_fqdns = [for record in aws_route53_record.ws_dns_verification : record.fqdn]
 }

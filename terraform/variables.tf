@@ -13,6 +13,11 @@ variable "rpc_dns_name" {
   default = "rpc.fhe-ethermint.zama.ai"
 }
 
+variable "ws_dns_name" {
+  type = string
+  default = "ws.fhe-ethermint.zama.ai"
+}
+
 variable "region" {
   type = string
   default = "eu-west-2"
