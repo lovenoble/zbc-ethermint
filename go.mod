@@ -37,7 +37,7 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	github.com/tyler-smith/go-bip39 v1.1.0
-	github.com/zama-ai/fhevm-go v0.1.5
+	github.com/zama-ai/fhevm-go v0.1.6
 	golang.org/x/net v0.17.0
 	golang.org/x/text v0.13.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e
