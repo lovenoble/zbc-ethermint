@@ -1,3 +1,23 @@
+variable "chain_name" {
+  type = string
+  default = "ZAMA Devnet"
+}
+
+variable "explorer_dns_name" {
+  type = string
+  default = "main.explorer.zama.ai"
+}
+
+variable "rpc_dns_name" {
+  type = string
+  default = "devnet.zama.ai"
+}
+
+variable "ws_dns_name" {
+  type = string
+  default = "devnet.ws.zama.ai"
+}
+
 variable "region" {
   type = string
   default = "eu-west-2"
@@ -8,6 +28,11 @@ variable "az" {
   default = "eu-west-2a"
 }
 
+variable "elb_extra_az" {
+  type = string
+  default = "eu-west-2b"
+}
+
 variable "ami" {
   type = string
   # Ubuntu Jammy Jellyfish	22.04 LTS at region eu-west-2
@@ -15,20 +40,27 @@ variable "ami" {
   default = "ami-0a93c302c38b5ec8e"
 }
 
-variable "worker_count" {
-  description = "Worker nodes to be spawned to run validator nodes on. Supports up to 90 nodes"
+variable "validator_count" {
+  description = "Worker nodes to be spawned to run validator nodes on"
   type = number
   default = 5
 }
 
+variable "full_node_count" {
+  description = "Full node count"
+  type = number
+  default = 3
+}
+
 variable "worker_type" {
   type = string
-  default = "t2.micro"
+  # compute optimized for fhe operations
+  default = "c5n.4xlarge"
 }
 
 variable "worker_disk_size_gb" {
   type = number
-  default = 30
+  default = 300
 }
 
 variable "cidr_vpc" {
@@ -39,6 +71,11 @@ variable "cidr_vpc" {
 variable "cidr_subnet" {
   type = string
   default = "10.0.0.0/24"
+}
+
+variable "elb_extra_subnet" {
+  type = string
+  default = "10.0.1.0/24"
 }
 
 variable "ssh_public_key" {

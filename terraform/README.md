@@ -1,5 +1,7 @@
 # Terraform test environment
 
+## Introduction
+
 This allows running example testnet with 5 nodes, could be scaled up to 90.
 
 To customize behaviour look into `variables.tf` file.
@@ -8,6 +10,16 @@ To not prompt public key prepare tfvars file with your public key:
 ```
 echo 'ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFCo2+r+BHQXwUn0hgS2ZEP79RUmz9T6JUKfMw4f1iAe deividas@Deividass-MacBook-Pro.local"' > terraform.tfvars
 ```
+
+## Requirements
+
+### Software
+
+`sshuttle`, `terraform`, `jq`
+
+### Credentials
+
+Github token and user to allow pulling docker image from `ghcr.io/zama-ai/ethermint-node`
 
 ## Running terraform
 
@@ -25,7 +37,7 @@ terraform apply
 
 Once terraform apply succeeds, get public ip of the single vpn node with:
 ```
-cat terraform.tfstate.backup | grep 'public_ip": "[0-9]'
+cat terraform.tfstate | grep 'public_ip": "[0-9]'
 ```
 Example output:
 ```
@@ -55,3 +67,16 @@ All worker nodes have only private ip and don't expose anything to the internet.
 However, they have public internet access to download packages and etc.
 
 All traffic is allowed between private nodes.
+
+## Testing
+
+To spin up all validators run
+
+```
+make full_setup
+```
+
+To destroy environment
+```
+make teardown
+```
