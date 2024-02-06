@@ -11,9 +11,10 @@ if len(sys.argv) < 2:
 FAUCET_DEST_ADDRESS = sys.argv[1]
 FAUCET_WALLET_NAME = os.getenv("FAUCET_WALLET_NAME", default="orchestrator")
 FAUCET_AMOUNT = os.getenv("FAUCET_AMOUNT", default="1000000000000000000")
-DENOM = os.getenv("DENOM", default="aphoton")
+DENOM = os.getenv("DENOM", default="ainco")
 
 IS_ZAMA_TESTNET = os.getenv('ZAMA_TESTNET')
+
 
 def get_faucet_address():
     keys_list_command = ['ethermintd', '--output=json', 'keys', 'list']

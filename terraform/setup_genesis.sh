@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DENOM=aphoton
+DENOM=ainco
 
 MONIKER="orchestrator"
 
@@ -73,7 +73,7 @@ echo "- Set gas limit in genesis"
 jq '.consensus_params["block"]["max_gas"]="10000000"' "$GENESIS" > "$TEMP_GENESIS" && mv "$TEMP_GENESIS" "$GENESIS"
 
 echo "- Set $DENOM as denom"
-sed -i.bak "s/aphoton/$DENOM/g" $GENESIS
+sed -i.bak "s/ainco/$DENOM/g" $GENESIS
 sed -i.bak "s/stake/$DENOM/g" $GENESIS
 
 # Change proposal periods to pass within a reasonable time for local testing

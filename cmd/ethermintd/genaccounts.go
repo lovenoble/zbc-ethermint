@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
@@ -66,6 +67,10 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			config := serverCtx.Config
 
 			config.SetRoot(clientCtx.HomeDir)
+
+			// The original default is 5s and is set in Cosmos SDK.
+			// We lower it to 4s for faster block times.
+			config.Consensus.TimeoutCommit = 4 * time.Second
 
 			kr := clientCtx.Keyring
 			addr, err := sdk.AccAddressFromBech32(args[0])

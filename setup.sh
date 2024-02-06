@@ -1,11 +1,12 @@
 #!/bin/bash
 
-CHAINID="ethermint_9000-1"
+CHAINID="inco-gentry-1"
 MONIKER="localtestnet"
 KEYRING="test"
 KEYALGO="eth_secp256k1"
 HOME_ETHERMINTD="$HOME/.ethermintd"
 ETHERMINTD="ethermintd"
+export FHEVM_GO_KEYS_DIR="$HOME_ETHERMINTD/zama/keys/network-fhe-keys"
 
 mkdir -p $HOME_ETHERMINTD/config
 
@@ -29,11 +30,11 @@ $ETHERMINTD keys add $KEY1 --keyring-backend $KEYRING --algo $KEYALGO
 # Set moniker and chain-id for Ethermint (Moniker can be anything, chain-id must be an integer)
 $ETHERMINTD init $MONIKER --chain-id $CHAINID
 
-# Change parameter token denominations to aphoton
-cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["staking"]["params"]["bond_denom"]="aphoton"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["crisis"]["constant_fee"]["denom"]="aphoton"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="aphoton"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["mint"]["params"]["mint_denom"]="aphoton"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
+# Change parameter token denominations to ainco
+cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["staking"]["params"]["bond_denom"]="ainco"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
+cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["crisis"]["constant_fee"]["denom"]="ainco"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
+cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="ainco"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
+cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["mint"]["params"]["mint_denom"]="ainco"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 
 # Set EVM RPC HTTP server address bind to 0.0.0.0 (needed to reach docker from host)
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -69,7 +70,7 @@ cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["claims"]["params"]["d
 
 # Claim module account:
 # 0xA61808Fe40fEb8B3433778BBC2ecECCAA47c8c47 || ethm15cvq3ljql6utxseh0zau9m8ve2j8erz8u5tz0g
-cat $HOME_ETHERMINTD/config/genesis.json | jq -r --arg amount_to_claim "$amount_to_claim" '.app_state["bank"]["balances"] += [{"address":"ethm15cvq3ljql6utxseh0zau9m8ve2j8erz8u5tz0g","coins":[{"denom":"aphoton", "amount":$amount_to_claim}]}]' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
+cat $HOME_ETHERMINTD/config/genesis.json | jq -r --arg amount_to_claim "$amount_to_claim" '.app_state["bank"]["balances"] += [{"address":"ethm15cvq3ljql6utxseh0zau9m8ve2j8erz8u5tz0g","coins":[{"denom":"ainco", "amount":$amount_to_claim}]}]' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 
 
 # Disable production of empty blocks.
@@ -82,7 +83,7 @@ fi
 
 
 # Allocate genesis accounts (cosmos formatted addresses)
-$ETHERMINTD add-genesis-account $KEY1 100000000000000000000000000aphoton --keyring-backend $KEYRING
+$ETHERMINTD add-genesis-account $KEY1 100000000000000000000000000ainco --keyring-backend $KEYRING
 
 
 # Update total supply with claim values
@@ -95,7 +96,7 @@ cat $HOME_ETHERMINTD/config/genesis.json | jq -r --arg total_supply "$total_supp
 
 
 # Sign genesis transaction
-$ETHERMINTD gentx $KEY1 1000000000000000000000aphoton --keyring-backend $KEYRING --chain-id $CHAINID
+$ETHERMINTD gentx $KEY1 1000000000000000000000ainco --keyring-backend $KEYRING --chain-id $CHAINID
 
 # Collect genesis tx
 $ETHERMINTD collect-gentxs

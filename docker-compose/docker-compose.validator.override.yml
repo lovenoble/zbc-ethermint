@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   validator:
@@ -6,4 +6,4 @@ services:
     environment:
       - FHEVM_GO_KEYS_DIR=/root/.ethermintd/zama/keys/network-fhe-keys
       - KMS_ENDPOINT_ADDR=kms:50051
-    entrypoint: /usr/bin/ethermintd  start --home /root/.ethermintd --pruning=nothing --log_level info  --minimum-gas-prices=0.0001aphoton  --json-rpc.gas-cap=50000000  --json-rpc.api eth,txpool,net,web3
+    entrypoint: /usr/bin/ethermintd  start --home /root/.ethermintd --pruning=nothing --log_level info  --minimum-gas-prices=0.0001ainco  --json-rpc.gas-cap=50000000  --json-rpc.api eth,txpool,net,web3
