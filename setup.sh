@@ -6,7 +6,6 @@ KEYRING="test"
 KEYALGO="eth_secp256k1"
 HOME_ETHERMINTD="$HOME/.ethermintd"
 ETHERMINTD="ethermintd"
-export FHEVM_GO_KEYS_DIR="$HOME_ETHERMINTD/zama/keys/network-fhe-keys"
 
 mkdir -p $HOME_ETHERMINTD/config
 
