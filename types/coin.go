@@ -33,6 +33,11 @@ const (
 	// - EVM parameters: denomination used for running EVM state transitions in Ethermint.
 	AttoInco string = "ainco"
 
+	// gentryChainID defines the Cosmos chain ID for the Gentry testnet.
+	gentryChainID = "inco-gentry-1"
+	// gentryEthChainID defines the Ethereum chain ID for the Gentry testnet.
+	GentryEthChainID = 9090
+
 	// BaseDenomUnit defines the base denomination unit for Photons.
 	// 1 photon = 1x10^{BaseDenomUnit} ainco
 	BaseDenomUnit = 18

@@ -16,6 +16,9 @@ func TestParseChainID(t *testing.T) {
 		expInt   *big.Int
 	}{
 		{
+			"valid chain-id", gentryChainID, false, big.NewInt(GentryEthChainID),
+		},
+		{
 			"valid chain-id, single digit", "ethermint_1-1", false, big.NewInt(1),
 		},
 		{

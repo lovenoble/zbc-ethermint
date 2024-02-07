@@ -42,7 +42,7 @@ FHEVM_GO_VERSION :=  $(shell ./scripts/get_module_version.sh go.mod zama.ai/fhev
 USE_DOCKER_FOR_FHE_KEYS ?= true
 FHEVM_TFHE_CLI_PATH ?= $(WORKDIR)/fhevm-tfhe-cli
 FHEVM_TFHE_CLI_PATH_EXISTS := $(shell test -d $(FHEVM_TFHE_CLI_PATH)/.git && echo "true" || echo "false")
-FHEVM_TFHE_CLI_VERSION ?= v0.2.2
+FHEVM_TFHE_CLI_VERSION ?= v0.2.4
 
 FHEVM_SOLIDITY_REPO ?= fhevm
 FHEVM_SOLIDITY_PATH ?= $(WORKDIR)/$(FHEVM_SOLIDITY_REPO)

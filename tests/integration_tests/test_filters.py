@@ -54,7 +54,7 @@ def cluster(request, custom_ethermint, ethermint_indexer, geth):
 
 def test_basic(cluster):
     w3 = cluster.w3
-    assert w3.eth.chain_id == 9000
+    assert w3.eth.chain_id == 9090
 
 
 # Smart contract names

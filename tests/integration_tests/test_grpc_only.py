@@ -54,7 +54,7 @@ def test_grpc_mode(custom_ethermint):
     """
     w3 = custom_ethermint.w3
     contract, _ = deploy_contract(w3, CONTRACTS["TestChainID"])
-    assert 9000 == contract.caller.currentChainID()
+    assert 9090 == contract.caller.currentChainID()
 
     msg = {
         "to": contract.address,
@@ -69,7 +69,7 @@ def test_grpc_mode(custom_ethermint):
         rsp = grpc_eth_call(api_port, msg)
         ret = rsp["ret"]
         valid = ret is not None
-        if valid and 9000 == int.from_bytes(base64.b64decode(ret.encode()), "big"):
+        if valid and 9090 == int.from_bytes(base64.b64decode(ret.encode()), "big"):
             success = True
             break
         time.sleep(sleep)
@@ -106,7 +106,7 @@ def test_grpc_mode(custom_ethermint):
             assert "invalid chain ID" in rsp["message"]
 
             # it don't works without proposer address neither
-            rsp = grpc_eth_call(api_port, msg, chain_id=9000)
+            rsp = grpc_eth_call(api_port, msg, chain_id=9090)
             assert rsp["code"] != 0, str(rsp)
             assert "validator does not exist" in rsp["message"]
 

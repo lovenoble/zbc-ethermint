@@ -4,8 +4,8 @@ def test_single_request_netversion(ethermint):
 
     response = eth_ws.make_request("net_version", [])
 
-    # net_version should be 9000
-    assert response["result"] == "9000", "got " + response["result"] + ", expected 9000"
+    # net_version should be 9090
+    assert response["result"] == "9090", "got " + response["result"] + ", expected 9090"
 
 # note:
 # batch requests still not implemented in web3.py

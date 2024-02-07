@@ -16,6 +16,7 @@ import (
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/evmos/ethermint/rpc/backend/mocks"
+	ethermint "github.com/evmos/ethermint/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 )
@@ -153,7 +154,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 }
 
 func (suite *BackendTestSuite) TestChainId() {
-	expChainId := (*hexutil.Big)(big.NewInt(9000))
+	expChainId := (*hexutil.Big)(big.NewInt(ethermint.GentryEthChainID))
 	testCases := []struct {
 		name         string
 		registerMock func()

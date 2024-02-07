@@ -576,7 +576,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 				}
 			},
 			true,
-			1086080,
+			1086162,
 			false,
 		},
 		// estimate gas of an erc20 transfer, the exact gas number is checked with geth
@@ -652,7 +652,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 				}
 			},
 			true,
-			1086080,
+			1086162,
 			true,
 		},
 		{
@@ -1105,7 +1105,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				chainID = &tmp
 			},
 			expPass:       true,
-			traceResponse: "[{\"error\":\"rpc error: code = Internal desc = invalid chain id for signer: have 9000 want 1\"}]",
+			traceResponse: "[{\"error\":\"rpc error: code = Internal desc = invalid chain id for signer: have 9090 want 1\"}]",
 		},
 	}
 

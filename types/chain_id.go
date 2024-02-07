@@ -40,6 +40,11 @@ var (
 
 // IsValidChainID returns false if the given chain identifier is incorrectly formatted.
 func IsValidChainID(chainID string) bool {
+	// Allow Inco's own Gentry chain ID
+	if chainID == gentryChainID {
+		return true
+	}
+
 	if len(chainID) > 48 {
 		return false
 	}
@@ -50,6 +55,11 @@ func IsValidChainID(chainID string) bool {
 // ParseChainID parses a string chain identifier's epoch to an Ethereum-compatible
 // chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
 func ParseChainID(chainID string) (*big.Int, error) {
+	// Allow Inco's own Gentry chain ID
+	if chainID == gentryChainID {
+		return big.NewInt(GentryEthChainID), nil
+	}
+
 	chainID = strings.TrimSpace(chainID)
 	if len(chainID) > 48 {
 		return nil, errorsmod.Wrapf(ErrInvalidChainID, "chain-id '%s' cannot exceed 48 chars", chainID)
