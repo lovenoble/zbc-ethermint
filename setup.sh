@@ -35,6 +35,9 @@ cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["crisis"]["constant_fe
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="ainco"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["mint"]["params"]["mint_denom"]="ainco"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 
+# For Gentry testnet, we use a voting period of 2min
+cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["gov"]["voting_params"]["voting_period"]="120s"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
+
 # Set EVM RPC HTTP server address bind to 0.0.0.0 (needed to reach docker from host)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     sed -i '' 's/127.0.0.1:8545/0.0.0.0:8545/g' $HOME_ETHERMINTD/config/app.toml
@@ -54,24 +57,6 @@ fi
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.consensus_params["block"]["max_gas"]="10000000"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 cat $HOME_ETHERMINTD/config/genesis.json | jq '.consensus_params["block"]["max_bytes"]="4194304"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 
-# Set claims start time
-node_address=$($ETHERMINTD keys list | grep  "address: " | cut -c12-)
-current_date=$(date -u +"%Y-%m-%dT%TZ")
-cat $HOME_ETHERMINTD/config/genesis.json | jq -r --arg current_date "$current_date" '.app_state["claims"]["params"]["airdrop_start_time"]=$current_date' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-
-# Set claims records for validator account
-amount_to_claim=10000
-cat $HOME_ETHERMINTD/config/genesis.json | jq -r --arg node_address "$node_address" --arg amount_to_claim "$amount_to_claim" '.app_state["claims"]["claims_records"]=[{"initial_claimable_amount":$amount_to_claim, "actions_completed":[false, false, false, false],"address":$node_address}]' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-
-# Set claims decay
-cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["claims"]["params"]["duration_of_decay"]="1000000s"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-cat $HOME_ETHERMINTD/config/genesis.json | jq '.app_state["claims"]["params"]["duration_until_decay"]="100000s"' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-
-# Claim module account:
-# 0xA61808Fe40fEb8B3433778BBC2ecECCAA47c8c47 || ethm15cvq3ljql6utxseh0zau9m8ve2j8erz8u5tz0g
-cat $HOME_ETHERMINTD/config/genesis.json | jq -r --arg amount_to_claim "$amount_to_claim" '.app_state["bank"]["balances"] += [{"address":"ethm15cvq3ljql6utxseh0zau9m8ve2j8erz8u5tz0g","coins":[{"denom":"ainco", "amount":$amount_to_claim}]}]' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
-
-
 # Disable production of empty blocks.
 # Increase transaction and HTTP server body sizes.
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -89,7 +74,7 @@ $ETHERMINTD add-genesis-account $KEY1 100000000000000000000000000ainco --keyring
 validators_supply=$(cat $HOME_ETHERMINTD/config/genesis.json | jq -r '.app_state["bank"]["supply"][0]["amount"]')
 # Bc is required to add this big numbers
 # total_supply=$(bc <<< "$amount_to_claim+$validators_supply")
-total_supply=100000000000000000000010000
+total_supply=100000000000000000000000000
 cat $HOME_ETHERMINTD/config/genesis.json | jq -r --arg total_supply "$total_supply" '.app_state["bank"]["supply"][0]["amount"]=$total_supply' > $HOME_ETHERMINTD/config/tmp_genesis.json && mv $HOME_ETHERMINTD/config/tmp_genesis.json $HOME_ETHERMINTD/config/genesis.json
 
 
