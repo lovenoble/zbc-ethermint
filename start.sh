@@ -3,7 +3,7 @@
 TRACE="--trace"
 HOME_ETHERMINTD="$HOME/.incod"
 ETHERMINTD="incod"
-export FHEVM_GO_KEYS_DIR="$HOME_ETHERMINTD/zama/keys/network-fhe-keys"
+export FHEVM_GO_KEYS_DIR="$HOME_ETHERMINTD/keys/network-fhe-keys"
 
 LOGLEVEL="info"
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)

@@ -127,8 +127,7 @@ if [[ $1 == "pending" ]]; then
 fi
 
 # Create Zama-specific directories and files.
-mkdir -p $HOME_ETHERMINTD/zama/keys/network-fhe-keys
-mkdir -p $HOME_ETHERMINTD/zama/config
+mkdir -p $HOME_ETHERMINTD/keys/network-fhe-keys
 
 touch $HOME/privkey
 $ETHERMINTD keys unsafe-export-eth-key $KEY1 --keyring-backend test > $HOME/privkey
