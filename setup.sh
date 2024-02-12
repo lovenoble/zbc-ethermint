@@ -4,8 +4,8 @@ CHAINID="inco-gentry-1"
 MONIKER="localtestnet"
 KEYRING="test"
 KEYALGO="eth_secp256k1"
-HOME_ETHERMINTD="$HOME/.ethermintd"
-ETHERMINTD="ethermintd"
+HOME_ETHERMINTD="$HOME/.incod"
+ETHERMINTD="incod"
 
 mkdir -p $HOME_ETHERMINTD/config
 

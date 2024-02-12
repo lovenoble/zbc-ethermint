@@ -1,8 +1,8 @@
 #!/bin/bash
 
 TRACE="--trace"
-HOME_ETHERMINTD="$HOME/.ethermintd"
-ETHERMINTD="ethermintd"
+HOME_ETHERMINTD="$HOME/.incod"
+ETHERMINTD="incod"
 export FHEVM_GO_KEYS_DIR="$HOME_ETHERMINTD/zama/keys/network-fhe-keys"
 
 LOGLEVEL="info"

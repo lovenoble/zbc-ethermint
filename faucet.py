@@ -17,11 +17,11 @@ IS_ZAMA_TESTNET = os.getenv('ZAMA_TESTNET')
 
 
 def get_faucet_address():
-    keys_list_command = ['ethermintd', '--output=json', 'keys', 'list']
+    keys_list_command = ['incod', '--output=json', 'keys', 'list']
     if IS_ZAMA_TESTNET:
         keys_list_command.append('--keyring-backend=test')
 
-    # Run the ethermintd command and capture the output
+    # Run the incod command and capture the output
     output_bytes = subprocess.check_output(keys_list_command)
 
     # Convert bytes to string
@@ -47,7 +47,7 @@ def get_faucet_address():
 
 def get_bech32_addr(ethereum_address):
     output = subprocess.check_output(
-        ["ethermintd", "debug", "addr", ethereum_address]
+        ["incod", "debug", "addr", ethereum_address]
     ).decode("utf-8")
     bech32 = next((x for x in output.splitlines() if x.startswith("Bech32 Acc:")))
     return bech32.split(": ")[1]
@@ -63,7 +63,7 @@ maybe_keyring_backend = ''
 if IS_ZAMA_TESTNET:
     maybe_keyring_backend = '--keyring-backend=test'
 os.system(
-    f"ethermintd --output=json tx bank send {maybe_keyring_backend} {faucet_address} {dst_bech_addr} \
+    f"incod --output=json tx bank send {maybe_keyring_backend} {faucet_address} {dst_bech_addr} \
         {FAUCET_AMOUNT}{DENOM} --from {FAUCET_WALLET_NAME} \
         --gas-prices 1000000000{DENOM} -y"
 )
