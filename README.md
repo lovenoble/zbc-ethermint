@@ -40,6 +40,48 @@ For now Ethermint is using go-ethereum v1.13.5, with fhEVM support.
 
 If you want to go deeper in the code and need to add some breakpoints, follow this [tutorial](DEBUG.md) to build from sources and activate the debugger in vscode.
 
+## How to run local node using codebase
+
+Running a node locally currently requires building several different components. From a common parent folder, run the following commands:
+
+### fhevm-tfhe-cli
+```bash
+git clone https://github.com/zama-ai/fhevm-tfhe-cli
+cd fhevm-tfhe-cli
+
+# for x86 CPUs
+cargo build --features tfhe/x86_64-unix --release
+
+# for ARM64
+cargo build --features tfhe/aarch64-unix --release
+
+sudo cp ./target/release/fhevm-tfhe-cli /usr/local/bin/
+```
+
+### fhevm-go
+```bash
+git clone https://github.com/Inco-fhevm/fhevm-go
+cd fhevm-go
+git submodule update --init --recursive
+make build
+```
+
+### zbc-go-etherum
+```bash
+git clone https://github.com/Inco-fhevm/zbc-go-ethereum
+```
+
+### zbc-ethermint
+```bash
+git clone https://github.com/Inco-fhevm/zbc-ethermint
+cd zbc-ethermint
+make build-local
+sudo cp ./build/incod /usr/local/bin/
+./setup.sh
+fhevm-tfhe-cli generate-keys -d ~/.incod/keys/network-fhe-keys
+cp ./node_config.toml ~/.incod/config
+./start.sh
+```
 
 ## How to run using docker images from registry
 
