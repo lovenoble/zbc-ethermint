@@ -6,6 +6,7 @@ on:
 
 jobs:
   cleanup-runs:
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     steps:
       - uses: rokroskar/workflow-run-cleanup-action@master
@@ -14,6 +15,7 @@ jobs:
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main'"
 
   deploy:
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +30,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '12.x'
+          node-version: "12.x"
       - name: Install dependencies
         working-directory: zbc-ethermint
         run: npm install

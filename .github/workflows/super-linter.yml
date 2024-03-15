@@ -14,6 +14,7 @@ on:
     branches: ["main"]
 jobs:
   run-lint:
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

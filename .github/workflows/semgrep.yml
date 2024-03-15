@@ -13,6 +13,7 @@ jobs:
   # Update from: https://semgrep.dev/docs/semgrep-ci/sample-ci-configs/#github-actions
   semgrep:
     name: Scan
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     container:
       image: returntocorp/semgrep

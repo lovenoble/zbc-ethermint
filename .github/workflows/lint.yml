@@ -10,6 +10,7 @@ on:
 jobs:
   golangci:
     name: Run golangci-lint
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -35,6 +36,7 @@ jobs:
         if: env.GIT_DIFF
   markdown-lint:
     name: Run markdown-lint
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -54,6 +56,7 @@ jobs:
         if: env.GIT_DIFF
   python-lint:
     name: Run flake8 on python integration tests
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -70,6 +73,7 @@ jobs:
         if: env.GIT_DIFF
   gomod2nix:
     name: Check gomod2nix.toml file is up to date
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

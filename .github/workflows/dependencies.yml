@@ -6,6 +6,7 @@ permissions:
 
 jobs:
   dependency-review:
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v4

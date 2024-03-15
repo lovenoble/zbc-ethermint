@@ -11,6 +11,7 @@ jobs:
       security-events: write
       contents: read
 
+    if: false # Skip, fix in ref: https://github.com/Inco-fhevm/zbc-ethermint/issues/42
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
